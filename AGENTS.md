@@ -1,6 +1,6 @@
 # Sharpex
 
-Behavior scripting DSL for C#. A single-file library (`Sharpex/Sharpex.cs`) that evaluates boolean expressions composed of user-defined functions. Designed for .NET and Unity.
+Behavior scripting DSL for C#. A single-file library (`Sharpex/Sharpex.cs`) that evaluates boolean expressions composed of user-defined functions. Designed for .NET.
 
 ## Project structure
 

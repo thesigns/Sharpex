@@ -2,7 +2,7 @@
 
 A lightweight behavior scripting DSL for C#. Define boolean functions in your code, then compose them into expressions with AND, OR, NOT, conditionals, sequencing, and time delays — all from a single string.
 
-Works with .NET and Unity.
+Works with .NET.
 
 ## Installation
 
@@ -135,15 +135,9 @@ bool result = Sharpex.Eval("#pay 10 #log \"paid\"");
 Evaluates an expression asynchronously, awaiting the provided delay function between time-delayed super groups.
 
 ```csharp
-// .NET
 bool result = await Sharpex.EvalAsync(
     "#log \"now\" [2] #log \"later\"",
     seconds => Task.Delay(TimeSpan.FromSeconds(seconds)));
-
-// Unity
-bool result = await Sharpex.EvalAsync(
-    "#log \"now\" [2] #log \"later\"",
-    async seconds => await Awaitable.WaitForSecondsAsync(seconds));
 ```
 
 ## License
