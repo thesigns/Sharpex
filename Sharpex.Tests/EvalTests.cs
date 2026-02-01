@@ -203,4 +203,40 @@ public class EvalTests
     {
         Assert.Throws<FormatException>(() => Sharpex.Eval("#pay 5 ? #pay 3 ? #pay 1"));
     }
+
+    [Fact]
+    public void Not_negates_false_to_true()
+    {
+        money = 2;
+
+        // pay 5 fails → negated → true
+        var result = Sharpex.Eval("~pay 5");
+
+        Assert.True(result);
+        Assert.Equal(2, money);
+    }
+
+    [Fact]
+    public void Not_negates_true_to_false()
+    {
+        money = 20;
+
+        // pay 5 succeeds → negated → false
+        var result = Sharpex.Eval("~pay 5");
+
+        Assert.False(result);
+        Assert.Equal(15, money);
+    }
+
+    [Fact]
+    public void Not_with_and()
+    {
+        money = 20;
+
+        // pay 5 (true) AND NOT pay 100 (fails → negated → true) → true
+        var result = Sharpex.Eval("#pay 5 ~pay 100");
+
+        Assert.True(result);
+        Assert.Equal(15, money);
+    }
 }

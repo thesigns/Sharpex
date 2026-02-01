@@ -124,9 +124,9 @@ public static class Sharpex
     }
 
     internal record ParsedGroup(
-        List<List<(string Name, List<string> Args)>> Condition,
-        List<List<(string Name, List<string> Args)>>? Then,
-        List<List<(string Name, List<string> Args)>>? Else);
+        List<List<(string Name, List<string> Args, bool Negated)>> Condition,
+        List<List<(string Name, List<string> Args, bool Negated)>>? Then,
+        List<List<(string Name, List<string> Args, bool Negated)>>? Else);
 
     internal static List<ParsedGroup> Parse(List<string> tokens)
     {
@@ -190,19 +190,22 @@ public static class Sharpex
         return result;
     }
 
-    internal static List<List<(string Name, List<string> Args)>> ParseOrExpr(List<string> tokens)
+    internal static List<List<(string Name, List<string> Args, bool Negated)>> ParseOrExpr(List<string> tokens)
     {
-        var orClauses = new List<List<(string Name, List<string> Args)>>();
-        var currentAnd = new List<(string Name, List<string> Args)>();
+        var orClauses = new List<List<(string Name, List<string> Args, bool Negated)>>();
+        var currentAnd = new List<(string Name, List<string> Args, bool Negated)>();
         string? currentName = null;
         List<string>? currentArgs = null;
+
+        var currentNegated = false;
 
         void FlushCall()
         {
             if (currentName != null)
-                currentAnd.Add((currentName, currentArgs!));
+                currentAnd.Add((currentName, currentArgs!, currentNegated));
             currentName = null;
             currentArgs = null;
+            currentNegated = false;
         }
 
         void FlushOr()
@@ -219,9 +222,10 @@ public static class Sharpex
             {
                 FlushOr();
             }
-            else if (token.StartsWith('#'))
+            else if (token.StartsWith('#') || token.StartsWith('~'))
             {
                 FlushCall();
+                currentNegated = token[0] == '~';
                 currentName = token[1..];
                 currentArgs = [];
             }
@@ -259,15 +263,16 @@ public static class Sharpex
         return result;
     }
 
-    private static bool EvalOrExpr(List<List<(string Name, List<string> Args)>> orExpr)
+    private static bool EvalOrExpr(List<List<(string Name, List<string> Args, bool Negated)>> orExpr)
     {
         var result = false;
         foreach (var andClause in orExpr)
         {
             var andResult = true;
-            foreach (var (name, args) in andClause)
+            foreach (var (name, args, negated) in andClause)
             {
                 andResult = ExecuteCall(name, args);
+                if (negated) andResult = !andResult;
                 if (!andResult)
                     break;
             }
