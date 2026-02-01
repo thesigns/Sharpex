@@ -12,7 +12,7 @@ Sharpex is designed for one-liner behavior scripts stored in game data spreadshe
 |---------|------|--------|
 | chest_01 | sword | `#has-item key ? #give sword #pay 10 : #say "Locked"` |
 | chest_02 | potion | `#lucky 50 ? #give potion : #say "Empty"` |
-| chest_03 | gold | `#pay 0 #give gold > #say "Coins spill out"` |
+| chest_03 | gold | `#lucky 80 ? #give gold : #say "Empty"` |
 
 Load the expression from your data, pass it to `Sharpex.Eval()`, done.
 

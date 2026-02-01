@@ -63,7 +63,7 @@ Operator precedence (highest first): `#`/`~` call → AND (space) → OR (`|`) �
 - Delays (`[n]`): accumulated sequentially. `[0]` is disallowed (`FormatException`).
 - NOT (`~`): negates the result of a single call.
 
-Arguments are converted via `Convert.ChangeType` using the target method's `ParameterInfo`.
+Arguments are converted via `Convert.ChangeType` with `CultureInfo.InvariantCulture` using the target method's `ParameterInfo`. Argument count is validated — mismatch throws `FormatException`.
 
 ## DSL syntax reference
 
@@ -95,3 +95,6 @@ Strings with spaces or special chars (`# " | > ? :`) must be quoted. `""` inside
 - `>` inside a conditional (between `?` and `:`) is a parse error — conditionals must stay within a single group.
 - `:` without a preceding `?` is a parse error.
 - Multiple `?` in one group is a parse error.
+- Wrong number of arguments throws `FormatException` with expected vs actual count.
+- Unknown function name throws `KeyNotFoundException`.
+- Duplicate `[Sharpex("name")]` across methods throws `InvalidOperationException` at startup.
