@@ -1,0 +1,93 @@
+# Sharpex
+
+Behavior scripting DSL for C#. A single-file library (`Sharpex/Sharpex.cs`) that evaluates boolean expressions composed of user-defined functions. Designed for .NET and Unity.
+
+## Project structure
+
+```
+Sharpex/Sharpex.cs          — entire library (tokenizer, parser, evaluator)
+Sharpex/Sharpex.csproj      — .NET 10, nullable enabled
+Sharpex.Tests/              — xUnit tests
+  TokenizeTests.cs           — tokenizer tests
+  EvalTests.cs               — end-to-end eval tests (AND, OR, NOT, groups, conditionals, delays)
+Sharpex.Playground/         — scratch project for manual testing
+```
+
+## Build and test
+
+```
+dotnet build
+dotnet test
+```
+
+All tests must pass before any change is considered complete.
+
+## Architecture
+
+Everything lives in a single static class `Sharpex` in `Sharpex/Sharpex.cs`. The pipeline is:
+
+```
+source string → Tokenize → Parse → Eval/EvalAsync
+```
+
+### Function registration
+
+Static methods marked with `[Sharpex("name")]` are discovered via reflection at static constructor time. Each must return `bool`. Delegates are compiled from expression trees for fast invocation (no `MethodInfo.Invoke`). Registered in `Dictionary<string, (Func<object?[], bool> Fn, ParameterInfo[] Parameters)>`.
+
+### Tokenizer (`Tokenize`)
+
+Splits input into tokens by whitespace. Supports quoted strings (`"..."`) with `""` escape for literal quotes. Returns `List<string>`. Does not interpret `#`, `~`, `>`, `|`, `?`, `:`, `[n]` — those are just tokens.
+
+### Parser (`Parse`, `ParseGroups`, `ParseOrExpr`)
+
+Three-level parsing:
+
+1. **`Parse`** — splits by `[n]` delay tokens into `List<ParsedSuperGroup>`. Each super group has a `float Delay` and `List<ParsedGroup>`.
+2. **`ParseGroups`** — splits by `>` into groups, then by `?` / `:` into conditionals. Returns `List<ParsedGroup>` where each has Condition, optional Then, optional Else.
+3. **`ParseOrExpr`** — splits by `|` into OR clauses, each containing AND-ed calls. Each call is `(string Name, List<string> Args, bool Negated)`.
+
+Operator precedence (highest first): `#`/`~` call → AND (space) → OR (`|`) → conditional (`? :`) → group (`>`) → delay (`[n]`).
+
+### Evaluator (`Eval`, `EvalAsync`, `EvalGroups`, `EvalOrExpr`, `ExecuteCall`)
+
+- `Eval(string)` — synchronous. Throws `InvalidOperationException` if delays > 0.
+- `EvalAsync(string, Func<float, Task>)` — async. Caller provides the delay implementation.
+- AND: short-circuit on false.
+- OR: short-circuit on true.
+- Groups (`>`): all execute, result = last.
+- Conditionals (`? :`): condition true → then branch; false → else branch (or false if no else).
+- Delays (`[n]`): accumulated sequentially. `[0]` is disallowed (`FormatException`).
+- NOT (`~`): negates the result of a single call.
+
+Arguments are converted via `Convert.ChangeType` using the target method's `ParameterInfo`.
+
+## DSL syntax reference
+
+```
+#name args...         function call
+~name args...         negated call (NOT)
+#a #b                 AND (short-circuit)
+#a | #b               OR (short-circuit)
+#cond ? #then         conditional (no else → false on fail)
+#cond ? #then : #else conditional with else
+#a > #b               groups (result = last)
+[n] #a                delay n seconds (n > 0, accumulates)
+```
+
+Strings with spaces or special chars (`# " | > ? :`) must be quoted. `""` inside quotes = literal `"`.
+
+## Key conventions
+
+- The library is intentionally a single file. Do not split it into multiple files.
+- `internal` methods (`Tokenize`, `Parse`, `ParseGroups`, `ParseOrExpr`) are exposed for testing via `InternalsVisibleTo("Sharpex.Tests")`.
+- Parser uses `SplitTokens` helper and local `FlushCall`/`FlushOr` functions for state machine parsing.
+- Tests use a `[Sharpex("pay")]` function with side effects (mutates `static int money`) to verify both return values and execution/short-circuit behavior.
+- Test names follow the pattern `Feature_scenario_expected_result`.
+
+## Common pitfalls
+
+- The static constructor scans all loaded assemblies. Some assemblies (e.g. test runners) may throw `TypeLoadException` or `ReflectionTypeLoadException` — these are caught and skipped silently.
+- `[0]` delay is a `FormatException`, not silently ignored.
+- `>` inside a conditional (between `?` and `:`) is a parse error — conditionals must stay within a single group.
+- `:` without a preceding `?` is a parse error.
+- Multiple `?` in one group is a parse error.

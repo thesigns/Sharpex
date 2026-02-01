@@ -4,6 +4,10 @@ A lightweight behavior scripting DSL for C#. Define boolean functions in your co
 
 Works with .NET and Unity.
 
+## Installation
+
+Copy `Sharpex/Sharpex.cs` into your project. That's it — single file, zero dependencies.
+
 ## Defining functions
 
 Mark any static method returning `bool` with the `[Sharpex]` attribute. Functions are discovered automatically at startup via reflection.
