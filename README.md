@@ -47,7 +47,7 @@ Parameters are automatically converted from strings using `Convert.ChangeType`. 
 ~pay 10           NOT pay — calls pay, negates the result
 ```
 
-`#` starts a function call. `~` starts a negated call (`NOT`). Arguments follow the function name, separated by spaces. Strings containing spaces or special characters (`# " | > ? :`) must be quoted. Use `""` inside quotes for a literal `"`.
+`#` starts a function call. `~` starts a negated call (`NOT`). Arguments follow the function name, separated by spaces. Newlines are treated as spaces, so expressions can span multiple lines. Strings containing spaces or special characters (`# " | > ? :`) must be quoted. Use `""` inside quotes for a literal `"`.
 
 ### AND (implicit)
 
@@ -110,8 +110,12 @@ Groups execute sequentially. The result is the result of the **last group**. All
 
 ### Full example
 
+Expressions can span multiple lines for readability:
+
 ```
-#has-item key ? #open-door #log "Door opened" : #log "Need a key"
+#has-item key
+    ? #open-door #log "Door opened"
+    : #log "Need a key"
 > #pay 5 | #log "Not enough gold"
 [2] #log "2 seconds later..."
 ```
