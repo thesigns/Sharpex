@@ -360,7 +360,7 @@ namespace Sharpex
 
             var converted = new object?[entry.Parameters.Length];
             for (var i = 0; i < converted.Length; i++)
-                converted[i] = Convert.ChangeType(args[i], entry.Parameters[i].ParameterType);
+                converted[i] = Convert.ChangeType(args[i], entry.Parameters[i].ParameterType, CultureInfo.InvariantCulture);
 
             return entry.Fn(converted);
         }
