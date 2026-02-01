@@ -42,9 +42,9 @@ Parameters are automatically converted from strings using `Convert.ChangeType`. 
 ### Calls
 
 ```
-#pay 10           call pay with argument 10
-#log "hello world" call log with a quoted string argument
-~pay 10           NOT pay — calls pay, negates the result
+#pay 10              call pay with argument 10
+#log "hello world"   call log with a quoted string argument
+~pay 10              NOT pay — calls pay, negates the result
 ```
 
 `#` starts a function call. `~` starts a negated call (`NOT`). Arguments follow the function name, separated by spaces. Newlines are treated as spaces, so expressions can span multiple lines. Strings containing spaces or special characters (`# " | > ? :`) must be quoted. Use `""` inside quotes for a literal `"`.
