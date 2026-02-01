@@ -39,10 +39,13 @@ namespace Sharpex
                     continue;
 
                 if (method.ReturnType != typeof(bool))
-                    throw new Exception($"{method.Name} must return bool");
+                    throw new InvalidOperationException($"{method.Name} must return bool");
 
                 var parameters = method.GetParameters();
                 var fn = BuildDelegate(method, parameters);
+                if (Functions.ContainsKey(attr.Name))
+                    throw new InvalidOperationException(
+                        $"Duplicate Sharpex function '{attr.Name}' (method '{method.Name}')");
                 Functions[attr.Name] = (fn, parameters);
             }
         }
@@ -356,7 +359,11 @@ namespace Sharpex
         private static bool ExecuteCall(string name, List<string> args)
         {
             if (!Functions.TryGetValue(name, out var entry))
-                throw new Exception($"Sharpex function '{name}' not found");
+                throw new KeyNotFoundException($"Sharpex function '{name}' not found");
+
+            if (args.Count != entry.Parameters.Length)
+                throw new FormatException(
+                    $"Function '{name}' expects {entry.Parameters.Length} argument(s), got {args.Count}");
 
             var converted = new object?[entry.Parameters.Length];
             for (var i = 0; i < converted.Length; i++)

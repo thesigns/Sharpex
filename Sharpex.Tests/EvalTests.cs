@@ -306,4 +306,22 @@ public class EvalTests
         Assert.Equal([2f, 3f], delays);
         Assert.Equal(21, money); // 30 - 5 - 3 - 1
     }
+
+    [Fact]
+    public void Too_few_arguments_throws()
+    {
+        Assert.Throws<FormatException>(() => Sharpex.Eval("#pay"));
+    }
+
+    [Fact]
+    public void Too_many_arguments_throws()
+    {
+        Assert.Throws<FormatException>(() => Sharpex.Eval("#pay 10 20"));
+    }
+
+    [Fact]
+    public void Unknown_function_throws()
+    {
+        Assert.Throws<KeyNotFoundException>(() => Sharpex.Eval("#nonexistent"));
+    }
 }
