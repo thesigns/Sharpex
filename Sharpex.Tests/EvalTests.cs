@@ -239,4 +239,71 @@ public class EvalTests
         Assert.True(result);
         Assert.Equal(15, money);
     }
+
+    [Fact]
+    public void Delay_zero_throws()
+    {
+        Assert.Throws<FormatException>(() => Sharpex.Eval("[0] #pay 5"));
+    }
+
+    [Fact]
+    public void Sync_eval_throws_on_delay()
+    {
+        Assert.Throws<InvalidOperationException>(() => Sharpex.Eval("[2] #pay 5"));
+    }
+
+    [Fact]
+    public async Task Async_eval_with_delay()
+    {
+        money = 20;
+
+        var result = await Sharpex.EvalAsync(
+            "[0.5] #pay 5",
+            _ => Task.CompletedTask); // fake delay
+
+        Assert.True(result);
+        Assert.Equal(15, money);
+    }
+
+    [Fact]
+    public async Task Async_eval_two_super_groups()
+    {
+        money = 20;
+
+        // SG0: pay 5 (immediate) → SG1: pay 3 (after delay)
+        var result = await Sharpex.EvalAsync(
+            "#pay 5 [1] #pay 3",
+            _ => Task.CompletedTask);
+
+        Assert.True(result);
+        Assert.Equal(12, money); // 20 - 5 - 3
+    }
+
+    [Fact]
+    public async Task Async_eval_result_from_last_super_group()
+    {
+        money = 5;
+
+        // SG0: pay 3 (true) → SG1: pay 10 (false)
+        var result = await Sharpex.EvalAsync(
+            "#pay 3 [1] #pay 10",
+            _ => Task.CompletedTask);
+
+        Assert.False(result);
+        Assert.Equal(2, money);
+    }
+
+    [Fact]
+    public async Task Async_eval_accumulates_delays()
+    {
+        money = 30;
+        var delays = new List<float>();
+
+        await Sharpex.EvalAsync(
+            "#pay 5 [2] #pay 3 [3] #pay 1",
+            d => { delays.Add(d); return Task.CompletedTask; });
+
+        Assert.Equal([2f, 3f], delays);
+        Assert.Equal(21, money); // 30 - 5 - 3 - 1
+    }
 }

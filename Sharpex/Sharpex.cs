@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Sharpex;
 
@@ -128,7 +130,50 @@ public static class Sharpex
         List<List<(string Name, List<string> Args, bool Negated)>>? Then,
         List<List<(string Name, List<string> Args, bool Negated)>>? Else);
 
-    internal static List<ParsedGroup> Parse(List<string> tokens)
+    internal record ParsedSuperGroup(float Delay, List<ParsedGroup> Groups);
+
+    private static bool TryParseDelay(string token, out float delay)
+    {
+        delay = 0;
+        if (token.Length < 3 || token[0] != '[' || token[^1] != ']')
+            return false;
+        return float.TryParse(token[1..^1], NumberStyles.Float, CultureInfo.InvariantCulture, out delay);
+    }
+
+    internal static List<ParsedSuperGroup> Parse(List<string> tokens)
+    {
+        var superGroups = new List<ParsedSuperGroup>();
+        var currentTokens = new List<string>();
+        var currentDelay = 0f;
+
+        foreach (var token in tokens)
+        {
+            if (TryParseDelay(token, out var delay))
+            {
+                if (delay <= 0)
+                    throw new FormatException("Delay must be greater than 0");
+
+                if (currentTokens.Count > 0)
+                {
+                    superGroups.Add(new ParsedSuperGroup(currentDelay, ParseGroups(currentTokens)));
+                    currentTokens = [];
+                }
+
+                currentDelay = delay;
+            }
+            else
+            {
+                currentTokens.Add(token);
+            }
+        }
+
+        if (currentTokens.Count > 0 || currentDelay > 0)
+            superGroups.Add(new ParsedSuperGroup(currentDelay, ParseGroups(currentTokens)));
+
+        return superGroups;
+    }
+
+    internal static List<ParsedGroup> ParseGroups(List<string> tokens)
     {
         var groups = new List<ParsedGroup>();
 
@@ -243,9 +288,32 @@ public static class Sharpex
 
     public static bool Eval(string source)
     {
-        var tokens = Tokenize(source);
-        var groups = Parse(tokens);
+        var superGroups = Parse(Tokenize(source));
+        if (superGroups.Any(sg => sg.Delay > 0))
+            throw new InvalidOperationException("Use EvalAsync for delayed expressions");
 
+        var result = false;
+        foreach (var sg in superGroups)
+            result = EvalGroups(sg.Groups);
+        return result;
+    }
+
+    public static async Task<bool> EvalAsync(string source, Func<float, Task> delay)
+    {
+        var superGroups = Parse(Tokenize(source));
+        var result = false;
+        foreach (var sg in superGroups)
+        {
+            if (sg.Delay > 0)
+                await delay(sg.Delay);
+            result = EvalGroups(sg.Groups);
+        }
+
+        return result;
+    }
+
+    private static bool EvalGroups(List<ParsedGroup> groups)
+    {
         var result = false;
         foreach (var group in groups)
         {
