@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Sharpex.Playground/Sharpex.Playground.csproj" />
+  <Project Path="Sharpex.Tests/Sharpex.Tests.csproj" />
+  <Project Path="Sharpex/Sharpex.csproj" />
+</Solution>
