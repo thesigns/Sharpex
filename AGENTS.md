@@ -2,6 +2,10 @@
 
 Behavior scripting DSL for C#. A single-file library (`Sharpex/Sharpex.cs`) that evaluates boolean expressions composed of user-defined functions. Designed for .NET.
 
+## Design intent
+
+The DSL is designed for one-liner behavior scripts stored in game data spreadsheets (CSV, Excel, Google Sheets). Expressions live in columns like `OnOpen`, `OnUse`, `OnTalk` and are evaluated at runtime via `Eval`/`EvalAsync`. The syntax is intentionally compact to fit in a single cell.
+
 ## Project structure
 
 ```

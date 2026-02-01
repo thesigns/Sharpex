@@ -4,6 +4,18 @@ A lightweight behavior scripting DSL for C#. Define boolean functions in your co
 
 Works with .NET.
 
+## Use case
+
+Sharpex is designed for one-liner behavior scripts stored in game data spreadsheets. Define expressions directly in columns like `OnOpen`, `OnUse`, or `OnTalk`:
+
+| ChestId | Loot | OnOpen |
+|---------|------|--------|
+| chest_01 | sword | `#has-item key ? #give sword #pay 10 : #say "Locked"` |
+| chest_02 | potion | `#lucky 50 ? #give potion : #say "Empty"` |
+| chest_03 | gold | `#pay 0 #give gold > #say "Coins spill out"` |
+
+Load the expression from your data, pass it to `Sharpex.Eval()`, done.
+
 ## Installation
 
 Copy `Sharpex/Sharpex.cs` into your project. That's it — single file, zero dependencies.
