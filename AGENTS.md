@@ -67,6 +67,7 @@ Operator precedence (highest first): `#`/`~` call → AND (space) → OR (`|`) �
 - Delays (`[n]`): accumulated sequentially. `[0]` is disallowed (`FormatException`).
 - NOT (`~`): negates the result of a single call.
 - Built-in `#is`: 1 arg (`$var`) → truthiness via `IsTruthy`. 3 args (`$var op value`) → comparison. Operators `>`, `<`, `>=`, `<=` require numeric operands. `==` works on all types. Right side can be literal or `$var`. Null left side → `FormatException`.
+- Built-in `#set`: 3 args (`$var op value`). `=` assigns (converts to existing type or auto-detects via `ParseLiteral`). `+=`, `-=`, `*=`, `/=` compound on numeric. Always returns `true`.
 
 Arguments are converted via `Convert.ChangeType` with `CultureInfo.InvariantCulture` using the target method's `ParameterInfo`. Argument count is validated — mismatch throws `FormatException`.
 
@@ -82,6 +83,8 @@ Arguments are converted via `Convert.ChangeType` with `CultureInfo.InvariantCult
 #is $var              variable truthiness (built-in)
 #is $var > 10         comparison (>, <, >=, <=, ==)
 #is $var == $other    compare two variables
+#set $var = 10        assign variable (built-in)
+#set $var += 5        compound assign (+=, -=, *=, /=)
 #a ; #b               groups (result = last)
 [n] #a                delay n seconds (n > 0, accumulates)
 ```
@@ -106,6 +109,7 @@ Strings with spaces or special chars (`# $ " | ; ? :`) must be quoted. `""` insi
 - Wrong number of arguments throws `FormatException` with expected vs actual count.
 - Unknown function name throws `KeyNotFoundException`.
 - Duplicate `[Sharpex("name")]` across methods throws `InvalidOperationException` at startup.
-- `[Sharpex("if")]` throws `InvalidOperationException` — `if` is a reserved built-in name.
-- Using `#is` without setting `VarProvider` throws `InvalidOperationException`.
+- `[Sharpex("is")]` or `[Sharpex("set")]` throws `InvalidOperationException` — reserved built-in names.
+- Using `#is`/`#set` without setting `VarProvider` throws `InvalidOperationException`.
 - `#is` without a `$` prefix argument throws `FormatException`.
+- `#set` compound operators on non-numeric or null variables throws `FormatException`.

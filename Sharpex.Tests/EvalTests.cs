@@ -614,4 +614,203 @@ public class EvalTests : IDisposable
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["temperature"] = 36.6 } };
         Assert.True(Sharpex.Eval("#is $temperature > 36"));
     }
+
+    // --- #set ---
+
+    [Fact]
+    public void Set_assign_string()
+    {
+        var provider = new TestVarProvider();
+        Sharpex.VarProvider = provider;
+
+        Sharpex.Eval("#set $name = \"Jakub\"");
+
+        Assert.Equal("Jakub", provider.Vars["name"]);
+    }
+
+    [Fact]
+    public void Set_assign_int()
+    {
+        var provider = new TestVarProvider();
+        Sharpex.VarProvider = provider;
+
+        Sharpex.Eval("#set $money = 42");
+
+        Assert.Equal(42, provider.Vars["money"]);
+    }
+
+    [Fact]
+    public void Set_assign_bool()
+    {
+        var provider = new TestVarProvider();
+        Sharpex.VarProvider = provider;
+
+        Sharpex.Eval("#set $night = true");
+
+        Assert.Equal(true, provider.Vars["night"]);
+    }
+
+    [Fact]
+    public void Set_assign_double()
+    {
+        var provider = new TestVarProvider();
+        Sharpex.VarProvider = provider;
+
+        Sharpex.Eval("#set $pi = 3.14");
+
+        Assert.Equal(3.14, provider.Vars["pi"]);
+    }
+
+    [Fact]
+    public void Set_assign_from_var()
+    {
+        var provider = new TestVarProvider { Vars = { ["original"] = 99 } };
+        Sharpex.VarProvider = provider;
+
+        Sharpex.Eval("#set $copy = $original");
+
+        Assert.Equal(99, provider.Vars["copy"]);
+    }
+
+    [Fact]
+    public void Set_assign_overwrites_typed()
+    {
+        var provider = new TestVarProvider { Vars = { ["money"] = 10 } };
+        Sharpex.VarProvider = provider;
+
+        Sharpex.Eval("#set $money = 99");
+
+        Assert.Equal(99, provider.Vars["money"]);
+        Assert.IsType<int>(provider.Vars["money"]);
+    }
+
+    [Fact]
+    public void Set_assign_type_mismatch_throws()
+    {
+        Sharpex.VarProvider = new TestVarProvider { Vars = { ["money"] = 42 } };
+        Assert.Throws<FormatException>(() => Sharpex.Eval("#set $money = \"test\""));
+    }
+
+    [Fact]
+    public void Set_add()
+    {
+        var provider = new TestVarProvider { Vars = { ["money"] = 42 } };
+        Sharpex.VarProvider = provider;
+
+        Sharpex.Eval("#set $money += 10");
+
+        Assert.Equal(52, provider.Vars["money"]);
+    }
+
+    [Fact]
+    public void Set_subtract()
+    {
+        var provider = new TestVarProvider { Vars = { ["money"] = 42 } };
+        Sharpex.VarProvider = provider;
+
+        Sharpex.Eval("#set $money -= 5");
+
+        Assert.Equal(37, provider.Vars["money"]);
+    }
+
+    [Fact]
+    public void Set_multiply()
+    {
+        var provider = new TestVarProvider { Vars = { ["x"] = 10 } };
+        Sharpex.VarProvider = provider;
+
+        Sharpex.Eval("#set $x *= 3");
+
+        Assert.Equal(30, provider.Vars["x"]);
+    }
+
+    [Fact]
+    public void Set_divide()
+    {
+        var provider = new TestVarProvider { Vars = { ["x"] = 10 } };
+        Sharpex.VarProvider = provider;
+
+        Sharpex.Eval("#set $x /= 2");
+
+        Assert.Equal(5, provider.Vars["x"]);
+    }
+
+    [Fact]
+    public void Set_compound_from_var()
+    {
+        var provider = new TestVarProvider { Vars = { ["money"] = 50, ["price"] = 15 } };
+        Sharpex.VarProvider = provider;
+
+        Sharpex.Eval("#set $money -= $price");
+
+        Assert.Equal(35, provider.Vars["money"]);
+    }
+
+    [Fact]
+    public void Set_compound_preserves_type()
+    {
+        var provider = new TestVarProvider { Vars = { ["count"] = 5 } };
+        Sharpex.VarProvider = provider;
+
+        Sharpex.Eval("#set $count += 3");
+
+        Assert.IsType<int>(provider.Vars["count"]);
+        Assert.Equal(8, provider.Vars["count"]);
+    }
+
+    [Fact]
+    public void Set_compound_on_null_throws()
+    {
+        Sharpex.VarProvider = new TestVarProvider();
+        Assert.Throws<FormatException>(() => Sharpex.Eval("#set $x += 1"));
+    }
+
+    [Fact]
+    public void Set_compound_on_string_throws()
+    {
+        Sharpex.VarProvider = new TestVarProvider { Vars = { ["name"] = "John" } };
+        Assert.Throws<FormatException>(() => Sharpex.Eval("#set $name += 1"));
+    }
+
+    [Fact]
+    public void Set_unknown_operator_throws()
+    {
+        Sharpex.VarProvider = new TestVarProvider { Vars = { ["x"] = 10 } };
+        Assert.Throws<FormatException>(() => Sharpex.Eval("#set $x %= 2"));
+    }
+
+    [Fact]
+    public void Set_returns_true()
+    {
+        Sharpex.VarProvider = new TestVarProvider();
+        Assert.True(Sharpex.Eval("#set $x = 1"));
+    }
+
+    [Fact]
+    public void Set_without_provider_throws()
+    {
+        Sharpex.VarProvider = null;
+        Assert.Throws<InvalidOperationException>(() => Sharpex.Eval("#set $x = 1"));
+    }
+
+    [Fact]
+    public void Set_wrong_arg_count_throws()
+    {
+        Sharpex.VarProvider = new TestVarProvider();
+        Assert.Throws<FormatException>(() => Sharpex.Eval("#set $x"));
+    }
+
+    [Fact]
+    public void Set_in_group_with_function()
+    {
+        money = 100;
+        var provider = new TestVarProvider { Vars = { ["discount"] = 20 } };
+        Sharpex.VarProvider = provider;
+
+        var result = Sharpex.Eval("#set $discount = 50 ; #pay 30");
+
+        Assert.True(result);
+        Assert.Equal(50, provider.Vars["discount"]);
+        Assert.Equal(70, money);
+    }
 }

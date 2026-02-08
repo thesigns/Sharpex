@@ -24,7 +24,7 @@ namespace Sharpex
     public static class Sharpex
     {
         private static readonly Dictionary<string, (Func<object?[], bool> Fn, ParameterInfo[] Parameters)> Functions = new();
-        private static readonly HashSet<string> ReservedNames = ["is"];
+        private static readonly HashSet<string> ReservedNames = ["is", "set"];
 
         public static ISharpexVar? VarProvider { get; set; }
 
@@ -391,6 +391,14 @@ namespace Sharpex
             return Convert.ChangeType(token, typeHint.GetType(), CultureInfo.InvariantCulture);
         }
 
+        private static object ParseLiteral(string token)
+        {
+            if (bool.TryParse(token, out var b)) return b;
+            if (int.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out var i)) return i;
+            if (double.TryParse(token, NumberStyles.Float, CultureInfo.InvariantCulture, out var d)) return d;
+            return token;
+        }
+
         private static bool IsNumeric(object? value) =>
             value is byte or sbyte or short or ushort or int or uint or
             long or ulong or float or double or decimal;
@@ -442,6 +450,58 @@ namespace Sharpex
                 var op = args[1];
                 var right = ResolveValue(args[2], left);
                 return Compare(left, op, right);
+            }
+
+            if (name == "set")
+            {
+                if (VarProvider == null)
+                    throw new InvalidOperationException("VarProvider is not set");
+                if (args.Count != 3)
+                    throw new FormatException(
+                        $"Function 'set' expects 3 arguments, got {args.Count}");
+                if (!args[0].StartsWith('$'))
+                    throw new FormatException("Function 'set' expects a $variable as first argument");
+
+                var varName = args[0][1..];
+                var op = args[1];
+                var existing = VarProvider.GetValue(varName);
+
+                if (op == "=")
+                {
+                    object? value;
+                    if (args[2].StartsWith('$'))
+                        value = ResolveValue(args[2], null);
+                    else if (existing != null)
+                        value = Convert.ChangeType(args[2], existing.GetType(), CultureInfo.InvariantCulture);
+                    else
+                        value = ParseLiteral(args[2]);
+                    VarProvider.SetValue(varName, value);
+                    return true;
+                }
+
+                if (existing == null)
+                    throw new FormatException($"Variable '{varName}' is not set");
+                if (!IsNumeric(existing))
+                    throw new FormatException($"Operator '{op}' requires a numeric variable");
+
+                var right = ResolveValue(args[2], existing);
+                if (!IsNumeric(right))
+                    throw new FormatException($"Operator '{op}' requires numeric operands");
+
+                var l = ToDouble(existing);
+                var r = ToDouble(right);
+                var result = op switch
+                {
+                    "+=" => l + r,
+                    "-=" => l - r,
+                    "*=" => l * r,
+                    "/=" => l / r,
+                    _ => throw new FormatException($"Unknown operator '{op}'")
+                };
+
+                VarProvider.SetValue(varName,
+                    Convert.ChangeType(result, existing.GetType(), CultureInfo.InvariantCulture));
+                return true;
             }
 
             if (!Functions.TryGetValue(name, out var entry))
