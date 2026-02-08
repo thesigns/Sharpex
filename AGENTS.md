@@ -40,7 +40,7 @@ Static methods marked with `[Sharpex("name")]` are discovered via reflection at 
 
 ### Variable provider (`ISharpexVar`)
 
-`ISharpexVar` interface with `GetValue(string name)` and `SetValue(string name, object? value)`. Set via static property `Sharpex.VarProvider`. Used by built-in `#if` to read variable values. `$name` tokens are a naming convention for variable references in arguments — not a parser-level operator.
+`ISharpexVar` interface with `GetValue(string name)` and `SetValue(string name, object? value)`. Set via static property `Sharpex.VarProvider`. Used by built-in `#is` to read variable values. `$name` tokens are a naming convention for variable references in arguments — not a parser-level operator.
 
 ### Tokenizer (`Tokenize`)
 
@@ -66,7 +66,7 @@ Operator precedence (highest first): `#`/`~` call → AND (space) → OR (`|`) �
 - Conditionals (`? :`): condition true → then branch; false → else branch (or false if no else).
 - Delays (`[n]`): accumulated sequentially. `[0]` is disallowed (`FormatException`).
 - NOT (`~`): negates the result of a single call.
-- Built-in `#if`: 1 arg (`$var`) → truthiness via `IsTruthy`. 3 args (`$var op value`) → comparison. Operators `>`, `<`, `>=`, `<=` require numeric operands. `==` works on all types. Right side can be literal or `$var`. Null left side → `FormatException`.
+- Built-in `#is`: 1 arg (`$var`) → truthiness via `IsTruthy`. 3 args (`$var op value`) → comparison. Operators `>`, `<`, `>=`, `<=` require numeric operands. `==` works on all types. Right side can be literal or `$var`. Null left side → `FormatException`.
 
 Arguments are converted via `Convert.ChangeType` with `CultureInfo.InvariantCulture` using the target method's `ParameterInfo`. Argument count is validated — mismatch throws `FormatException`.
 
@@ -79,9 +79,9 @@ Arguments are converted via `Convert.ChangeType` with `CultureInfo.InvariantCult
 #a | #b               OR (short-circuit)
 #cond ? #then         conditional (no else → false on fail)
 #cond ? #then : #else conditional with else
-#if $var              variable truthiness (built-in)
-#if $var > 10         comparison (>, <, >=, <=, ==)
-#if $var == $other    compare two variables
+#is $var              variable truthiness (built-in)
+#is $var > 10         comparison (>, <, >=, <=, ==)
+#is $var == $other    compare two variables
 #a ; #b               groups (result = last)
 [n] #a                delay n seconds (n > 0, accumulates)
 ```
@@ -107,5 +107,5 @@ Strings with spaces or special chars (`# $ " | ; ? :`) must be quoted. `""` insi
 - Unknown function name throws `KeyNotFoundException`.
 - Duplicate `[Sharpex("name")]` across methods throws `InvalidOperationException` at startup.
 - `[Sharpex("if")]` throws `InvalidOperationException` — `if` is a reserved built-in name.
-- Using `#if` without setting `VarProvider` throws `InvalidOperationException`.
-- `#if` without a `$` prefix argument throws `FormatException`.
+- Using `#is` without setting `VarProvider` throws `InvalidOperationException`.
+- `#is` without a `$` prefix argument throws `FormatException`.

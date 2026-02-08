@@ -337,281 +337,281 @@ public class EvalTests : IDisposable
     // --- #if (variable truthiness) ---
 
     [Fact]
-    public void If_bool_true_returns_true()
+    public void Is_bool_true_returns_true()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["isOpen"] = true } };
-        Assert.True(Sharpex.Eval("#if $isOpen"));
+        Assert.True(Sharpex.Eval("#is $isOpen"));
     }
 
     [Fact]
-    public void If_bool_false_returns_false()
+    public void Is_bool_false_returns_false()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["isOpen"] = false } };
-        Assert.False(Sharpex.Eval("#if $isOpen"));
+        Assert.False(Sharpex.Eval("#is $isOpen"));
     }
 
     [Fact]
-    public void If_numeric_zero_returns_false()
+    public void Is_numeric_zero_returns_false()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["money"] = 0 } };
-        Assert.False(Sharpex.Eval("#if $money"));
+        Assert.False(Sharpex.Eval("#is $money"));
     }
 
     [Fact]
-    public void If_numeric_nonzero_returns_true()
+    public void Is_numeric_nonzero_returns_true()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["money"] = 42 } };
-        Assert.True(Sharpex.Eval("#if $money"));
+        Assert.True(Sharpex.Eval("#is $money"));
     }
 
     [Fact]
-    public void If_string_empty_returns_false()
+    public void Is_string_empty_returns_false()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["name"] = "" } };
-        Assert.False(Sharpex.Eval("#if $name"));
+        Assert.False(Sharpex.Eval("#is $name"));
     }
 
     [Fact]
-    public void If_string_nonempty_returns_true()
+    public void Is_string_nonempty_returns_true()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["name"] = "John" } };
-        Assert.True(Sharpex.Eval("#if $name"));
+        Assert.True(Sharpex.Eval("#is $name"));
     }
 
     [Fact]
-    public void If_null_returns_false()
+    public void Is_null_returns_false()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["x"] = null } };
-        Assert.False(Sharpex.Eval("#if $x"));
+        Assert.False(Sharpex.Eval("#is $x"));
     }
 
     [Fact]
-    public void If_missing_var_returns_false()
+    public void Is_missing_var_returns_false()
     {
         Sharpex.VarProvider = new TestVarProvider();
-        Assert.False(Sharpex.Eval("#if $unknown"));
+        Assert.False(Sharpex.Eval("#is $unknown"));
     }
 
     [Fact]
-    public void If_negated_returns_opposite()
+    public void Is_negated_returns_opposite()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["isOpen"] = true } };
-        Assert.False(Sharpex.Eval("~if $isOpen"));
+        Assert.False(Sharpex.Eval("~is $isOpen"));
     }
 
     [Fact]
-    public void If_in_conditional()
+    public void Is_in_conditional()
     {
         money = 20;
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["isOpen"] = true } };
 
-        var result = Sharpex.Eval("#if $isOpen ? #pay 5 : #pay 1");
+        var result = Sharpex.Eval("#is $isOpen ? #pay 5 : #pay 1");
 
         Assert.True(result);
         Assert.Equal(15, money);
     }
 
     [Fact]
-    public void If_in_conditional_false_branch()
+    public void Is_in_conditional_false_branch()
     {
         money = 20;
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["isOpen"] = false } };
 
-        var result = Sharpex.Eval("#if $isOpen ? #pay 5 : #pay 1");
+        var result = Sharpex.Eval("#is $isOpen ? #pay 5 : #pay 1");
 
         Assert.True(result);
         Assert.Equal(19, money);
     }
 
     [Fact]
-    public void If_and_function_combined()
+    public void Is_and_function_combined()
     {
         money = 20;
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["isOpen"] = true } };
 
-        var result = Sharpex.Eval("#if $isOpen #pay 10");
+        var result = Sharpex.Eval("#is $isOpen #pay 10");
 
         Assert.True(result);
         Assert.Equal(10, money);
     }
 
     [Fact]
-    public void If_false_short_circuits_and()
+    public void Is_false_short_circuits_and()
     {
         money = 20;
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["isOpen"] = false } };
 
-        var result = Sharpex.Eval("#if $isOpen #pay 10");
+        var result = Sharpex.Eval("#is $isOpen #pay 10");
 
         Assert.False(result);
         Assert.Equal(20, money); // pay not executed
     }
 
     [Fact]
-    public void If_without_provider_throws()
+    public void Is_without_provider_throws()
     {
         Sharpex.VarProvider = null;
-        Assert.Throws<InvalidOperationException>(() => Sharpex.Eval("#if $x"));
+        Assert.Throws<InvalidOperationException>(() => Sharpex.Eval("#is $x"));
     }
 
     [Fact]
-    public void If_wrong_arg_count_throws()
+    public void Is_wrong_arg_count_throws()
     {
         Sharpex.VarProvider = new TestVarProvider();
-        Assert.Throws<FormatException>(() => Sharpex.Eval("#if"));
+        Assert.Throws<FormatException>(() => Sharpex.Eval("#is"));
     }
 
     [Fact]
-    public void If_non_var_arg_throws()
+    public void Is_non_var_arg_throws()
     {
         Sharpex.VarProvider = new TestVarProvider();
-        Assert.Throws<FormatException>(() => Sharpex.Eval("#if hello"));
+        Assert.Throws<FormatException>(() => Sharpex.Eval("#is hello"));
     }
 
     [Fact]
-    public void If_two_args_throws()
+    public void Is_two_args_throws()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["x"] = 1 } };
-        Assert.Throws<FormatException>(() => Sharpex.Eval("#if $x >"));
+        Assert.Throws<FormatException>(() => Sharpex.Eval("#is $x >"));
     }
 
     // --- #if comparisons ---
 
     [Fact]
-    public void If_greater_than_true()
+    public void Is_greater_than_true()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["money"] = 42 } };
-        Assert.True(Sharpex.Eval("#if $money > 10"));
+        Assert.True(Sharpex.Eval("#is $money > 10"));
     }
 
     [Fact]
-    public void If_greater_than_false()
+    public void Is_greater_than_false()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["money"] = 42 } };
-        Assert.False(Sharpex.Eval("#if $money > 100"));
+        Assert.False(Sharpex.Eval("#is $money > 100"));
     }
 
     [Fact]
-    public void If_less_than()
+    public void Is_less_than()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["money"] = 42 } };
-        Assert.True(Sharpex.Eval("#if $money < 100"));
+        Assert.True(Sharpex.Eval("#is $money < 100"));
     }
 
     [Fact]
-    public void If_greater_or_equal_when_equal()
+    public void Is_greater_or_equal_when_equal()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["money"] = 42 } };
-        Assert.True(Sharpex.Eval("#if $money >= 42"));
+        Assert.True(Sharpex.Eval("#is $money >= 42"));
     }
 
     [Fact]
-    public void If_less_or_equal_when_equal()
+    public void Is_less_or_equal_when_equal()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["money"] = 42 } };
-        Assert.True(Sharpex.Eval("#if $money <= 42"));
+        Assert.True(Sharpex.Eval("#is $money <= 42"));
     }
 
     [Fact]
-    public void If_equals_numeric()
+    public void Is_equals_numeric()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["money"] = 42 } };
-        Assert.True(Sharpex.Eval("#if $money == 42"));
+        Assert.True(Sharpex.Eval("#is $money == 42"));
     }
 
     [Fact]
-    public void If_equals_numeric_false()
+    public void Is_equals_numeric_false()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["money"] = 42 } };
-        Assert.False(Sharpex.Eval("#if $money == 99"));
+        Assert.False(Sharpex.Eval("#is $money == 99"));
     }
 
     [Fact]
-    public void If_equals_string()
+    public void Is_equals_string()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["name"] = "John" } };
-        Assert.True(Sharpex.Eval("#if $name == \"John\""));
+        Assert.True(Sharpex.Eval("#is $name == \"John\""));
     }
 
     [Fact]
-    public void If_equals_string_false()
+    public void Is_equals_string_false()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["name"] = "John" } };
-        Assert.False(Sharpex.Eval("#if $name == \"Jane\""));
+        Assert.False(Sharpex.Eval("#is $name == \"Jane\""));
     }
 
     [Fact]
-    public void If_equals_bool()
+    public void Is_equals_bool()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["isOpen"] = true } };
-        Assert.True(Sharpex.Eval("#if $isOpen == true"));
+        Assert.True(Sharpex.Eval("#is $isOpen == true"));
     }
 
     [Fact]
-    public void If_compare_with_var()
+    public void Is_compare_with_var()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["money"] = 42, ["price"] = 10 } };
-        Assert.True(Sharpex.Eval("#if $money > $price"));
+        Assert.True(Sharpex.Eval("#is $money > $price"));
     }
 
     [Fact]
-    public void If_compare_with_var_equal()
+    public void Is_compare_with_var_equal()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["a"] = 5, ["b"] = 5 } };
-        Assert.True(Sharpex.Eval("#if $a == $b"));
+        Assert.True(Sharpex.Eval("#is $a == $b"));
     }
 
     [Fact]
-    public void If_compare_null_throws()
+    public void Is_compare_null_throws()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["x"] = null } };
-        Assert.Throws<FormatException>(() => Sharpex.Eval("#if $x > 10"));
+        Assert.Throws<FormatException>(() => Sharpex.Eval("#is $x > 10"));
     }
 
     [Fact]
-    public void If_compare_string_ordering_throws()
+    public void Is_compare_string_ordering_throws()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["name"] = "Alice" } };
-        Assert.Throws<FormatException>(() => Sharpex.Eval("#if $name > \"Bob\""));
+        Assert.Throws<FormatException>(() => Sharpex.Eval("#is $name > \"Bob\""));
     }
 
     [Fact]
-    public void If_compare_type_mismatch_throws()
+    public void Is_compare_type_mismatch_throws()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["money"] = 42 } };
-        Assert.Throws<FormatException>(() => Sharpex.Eval("#if $money >= \"test\""));
+        Assert.Throws<FormatException>(() => Sharpex.Eval("#is $money >= \"test\""));
     }
 
     [Fact]
-    public void If_negated_comparison()
+    public void Is_negated_comparison()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["money"] = 42 } };
-        Assert.True(Sharpex.Eval("~if $money > 100"));
+        Assert.True(Sharpex.Eval("~is $money > 100"));
     }
 
     [Fact]
-    public void If_comparison_in_conditional()
+    public void Is_comparison_in_conditional()
     {
         money = 20;
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["threshold"] = 10 } };
 
-        var result = Sharpex.Eval("#if $threshold >= 10 ? #pay 5 : #pay 1");
+        var result = Sharpex.Eval("#is $threshold >= 10 ? #pay 5 : #pay 1");
 
         Assert.True(result);
         Assert.Equal(15, money);
     }
 
     [Fact]
-    public void If_unknown_operator_throws()
+    public void Is_unknown_operator_throws()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["money"] = 42 } };
-        Assert.Throws<FormatException>(() => Sharpex.Eval("#if $money != 10"));
+        Assert.Throws<FormatException>(() => Sharpex.Eval("#is $money != 10"));
     }
 
     [Fact]
-    public void If_float_comparison()
+    public void Is_float_comparison()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["temperature"] = 36.6 } };
-        Assert.True(Sharpex.Eval("#if $temperature > 36"));
+        Assert.True(Sharpex.Eval("#is $temperature > 36"));
     }
 }

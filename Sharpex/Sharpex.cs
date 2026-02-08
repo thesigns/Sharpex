@@ -24,7 +24,7 @@ namespace Sharpex
     public static class Sharpex
     {
         private static readonly Dictionary<string, (Func<object?[], bool> Fn, ParameterInfo[] Parameters)> Functions = new();
-        private static readonly HashSet<string> ReservedNames = ["if"];
+        private static readonly HashSet<string> ReservedNames = ["is"];
 
         public static ISharpexVar? VarProvider { get; set; }
 
@@ -425,15 +425,15 @@ namespace Sharpex
 
         private static bool ExecuteCall(string name, List<string> args)
         {
-            if (name == "if")
+            if (name == "is")
             {
                 if (VarProvider == null)
                     throw new InvalidOperationException("VarProvider is not set");
                 if (args.Count != 1 && args.Count != 3)
                     throw new FormatException(
-                        $"Function 'if' expects 1 or 3 arguments, got {args.Count}");
+                        $"Function 'is' expects 1 or 3 arguments, got {args.Count}");
                 if (!args[0].StartsWith('$'))
-                    throw new FormatException("Function 'if' expects a $variable argument");
+                    throw new FormatException("Function 'is' expects a $variable argument");
 
                 if (args.Count == 1)
                     return IsTruthy(VarProvider.GetValue(args[0][1..]));

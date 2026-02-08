@@ -65,11 +65,11 @@ internal static class Program
         await RunAsync(
             "#say \"The ground shakes...\" [1.5] #say \"A DRAGON bursts through the wall!\" [1] #has-item sword ? #say \"You slash the dragon! It flees!\" : #say \"You dive behind a table!\"");
 
-        // 8. Variables (#if $)
-        Section("Variables (#if $)");
-        Run("#if $isNight ? #say \"The moon casts long shadows...\" : #say \"The sun is shining.\"");
-        Run("#if $gold #say \"You still have some gold.\"");
-        Run("#if $gold > 20 ? #say \"Plenty of gold!\" : #say \"Running low on gold...\"");
+        // 8. Variables (#is $)
+        Section("Variables (#is $)");
+        Run("#is $isNight ? #say \"The moon casts long shadows...\" : #say \"The sun is shining.\"");
+        Run("#is $gold #say \"You still have some gold.\"");
+        Run("#is $gold > 20 ? #say \"Plenty of gold!\" : #say \"Running low on gold...\"");
 
         // 9. Finale
         Section("Finale");

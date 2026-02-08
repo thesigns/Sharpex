@@ -61,19 +61,19 @@ Parameters are automatically converted from strings using `Convert.ChangeType`. 
 
 `#` starts a function call. `~` starts a negated call (`NOT`). Arguments follow the function name, separated by spaces. Newlines are treated as spaces, so expressions can span multiple lines. Strings containing spaces or special characters (`# $ " | ; ? :`) must be quoted. Use `""` inside quotes for a literal `"`.
 
-### Variables (`#if`)
+### Variables (`#is`)
 
 ```
-#if $isOpen                         true if isOpen is truthy
-#if $money > 10                     comparison (>, <, >=, <=, ==)
-#if $name == "John"                 string equality
-#if $money >= $price                compare two variables
-#if $isNight ? #log "Dark" : #log "Light"
+#is $isOpen                         true if isOpen is truthy
+#is $money > 10                     comparison (>, <, >=, <=, ==)
+#is $name == "John"                 string equality
+#is $money >= $price                compare two variables
+#is $isNight ? #log "Dark" : #log "Light"
 ```
 
-The built-in `#if` reads a variable via `ISharpexVar.GetValue`. With 1 argument, returns **truthiness**: `null` → false, `bool` → direct, numbers → `0` is false, strings → empty is false, everything else → true. With 3 arguments (`$var op value`), performs a comparison. The right side can be a literal or another `$variable`.
+The built-in `#is` reads a variable via `ISharpexVar.GetValue`. With 1 argument, returns **truthiness**: `null` → false, `bool` → direct, numbers → `0` is false, strings → empty is false, everything else → true. With 3 arguments (`$var op value`), performs a comparison. The right side can be a literal or another `$variable`.
 
-Comparison operators `>`, `<`, `>=`, `<=` require numeric operands. `==` works on all types. Type mismatches and null comparisons throw `FormatException`. Negation works: `~if $money > 100`.
+Comparison operators `>`, `<`, `>=`, `<=` require numeric operands. `==` works on all types. Type mismatches and null comparisons throw `FormatException`. Negation works: `~is $money > 100`.
 
 Variables require a provider — see `Sharpex.VarProvider` in the API section.
 
@@ -170,7 +170,7 @@ bool result = await Sharpex.EvalAsync(
 
 ### `Sharpex.VarProvider`
 
-Set this to an `ISharpexVar` implementation to enable variable access via `#if $name`. If not set, using `#if` throws `InvalidOperationException`.
+Set this to an `ISharpexVar` implementation to enable variable access via `#is $name`. If not set, using `#is` throws `InvalidOperationException`.
 
 ```csharp
 public interface ISharpexVar
@@ -182,7 +182,7 @@ public interface ISharpexVar
 
 ```csharp
 Sharpex.VarProvider = new MyVarProvider();
-bool result = Sharpex.Eval("#if $isOpen ? #log \"open\" : #log \"closed\"");
+bool result = Sharpex.Eval("#is $isOpen ? #log \"open\" : #log \"closed\"");
 ```
 
 ## License
