@@ -250,6 +250,24 @@ public class EvalTests : IDisposable
     }
 
     [Fact]
+    public void IsDelayed_true_for_delayed_expression()
+    {
+        Assert.True(Sharpex.IsDelayed("[2] #pay 5"));
+    }
+
+    [Fact]
+    public void IsDelayed_false_for_immediate_expression()
+    {
+        Assert.False(Sharpex.IsDelayed("#pay 5"));
+    }
+
+    [Fact]
+    public void IsDelayed_false_for_empty()
+    {
+        Assert.False(Sharpex.IsDelayed(""));
+    }
+
+    [Fact]
     public void Delay_zero_throws()
     {
         Assert.Throws<FormatException>(() => Sharpex.Eval("[0] #pay 5"));

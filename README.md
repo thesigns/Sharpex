@@ -161,6 +161,17 @@ Evaluates an expression synchronously. Throws `InvalidOperationException` if the
 bool result = Sharpex.Eval("#pay 10 #log \"paid\"");
 ```
 
+### `Sharpex.IsDelayed(string source)`
+
+Returns `true` if the expression contains time delays (`[n]`). Use this to decide between `Eval` and `EvalAsync`.
+
+```csharp
+if (Sharpex.IsDelayed(expression))
+    await Sharpex.EvalAsync(expression, seconds => Task.Delay(TimeSpan.FromSeconds(seconds)));
+else
+    Sharpex.Eval(expression);
+```
+
 ### `Sharpex.EvalAsync(string source, Func<float, Task> delay)`
 
 Evaluates an expression asynchronously, awaiting the provided delay function between time-delayed super groups.

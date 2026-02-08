@@ -36,7 +36,7 @@ source string → Tokenize → Parse → Eval/EvalAsync
 
 ### Function registration
 
-Static methods marked with `[Sharpex("name")]` are discovered via reflection at static constructor time. Each must return `bool`. Delegates are compiled from expression trees for fast invocation (no `MethodInfo.Invoke`). Registered in `Dictionary<string, (Func<object?[], bool> Fn, ParameterInfo[] Parameters)>`. Reserved names (`if`) cannot be used — throws `InvalidOperationException`.
+Static methods marked with `[Sharpex("name")]` are discovered via reflection at static constructor time. Each must return `bool`. Delegates are compiled from expression trees for fast invocation (no `MethodInfo.Invoke`). Registered in `Dictionary<string, (Func<object?[], bool> Fn, ParameterInfo[] Parameters)>`. Reserved names (`is`, `set`) cannot be used — throws `InvalidOperationException`.
 
 ### Variable provider (`ISharpexVar`)
 
@@ -58,6 +58,7 @@ Operator precedence (highest first): `#`/`~` call → AND (space) → OR (`|`) �
 
 ### Evaluator (`Eval`, `EvalAsync`, `EvalGroups`, `EvalOrExpr`, `ExecuteCall`)
 
+- `IsDelayed(string)` — returns true if expression contains `[n]` delays. Use to choose between `Eval` and `EvalAsync`.
 - `Eval(string)` — synchronous. Throws `InvalidOperationException` if delays > 0.
 - `EvalAsync(string, Func<float, Task>)` — async. Caller provides the delay implementation.
 - AND: short-circuit on false.

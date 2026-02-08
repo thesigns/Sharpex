@@ -301,6 +301,9 @@ namespace Sharpex
             return orClauses;
         }
 
+        public static bool IsDelayed(string source) =>
+            Parse(Tokenize(source)).Any(sg => sg.Delay > 0);
+
         public static bool Eval(string source)
         {
             var superGroups = Parse(Tokenize(source));
