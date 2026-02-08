@@ -36,11 +36,15 @@ source string → Tokenize → Parse → Eval/EvalAsync
 
 ### Function registration
 
-Static methods marked with `[Sharpex("name")]` are discovered via reflection at static constructor time. Each must return `bool`. Delegates are compiled from expression trees for fast invocation (no `MethodInfo.Invoke`). Registered in `Dictionary<string, (Func<object?[], bool> Fn, ParameterInfo[] Parameters)>`.
+Static methods marked with `[Sharpex("name")]` are discovered via reflection at static constructor time. Each must return `bool`. Delegates are compiled from expression trees for fast invocation (no `MethodInfo.Invoke`). Registered in `Dictionary<string, (Func<object?[], bool> Fn, ParameterInfo[] Parameters)>`. Reserved names (`if`) cannot be used — throws `InvalidOperationException`.
+
+### Variable provider (`ISharpexVar`)
+
+`ISharpexVar` interface with `GetValue(string name)` and `SetValue(string name, object? value)`. Set via static property `Sharpex.VarProvider`. Used by built-in `#if` to read variable values. `$name` tokens are a naming convention for variable references in arguments — not a parser-level operator.
 
 ### Tokenizer (`Tokenize`)
 
-Splits input into tokens by whitespace. Supports quoted strings (`"..."`) with `""` escape for literal quotes. Returns `List<string>`. Does not interpret `#`, `~`, `;`, `|`, `?`, `:`, `[n]` — those are just tokens.
+Splits input into tokens by whitespace. Supports quoted strings (`"..."`) with `""` escape for literal quotes. Returns `List<string>`. Does not interpret `#`, `~`, `$`, `;`, `|`, `?`, `:`, `[n]` — those are just tokens.
 
 ### Parser (`Parse`, `ParseGroups`, `ParseOrExpr`)
 
@@ -62,6 +66,7 @@ Operator precedence (highest first): `#`/`~` call → AND (space) → OR (`|`) �
 - Conditionals (`? :`): condition true → then branch; false → else branch (or false if no else).
 - Delays (`[n]`): accumulated sequentially. `[0]` is disallowed (`FormatException`).
 - NOT (`~`): negates the result of a single call.
+- Built-in `#if`: reads variable via `VarProvider.GetValue`, returns truthiness (`IsTruthy`). Requires exactly 1 `$variable` argument.
 
 Arguments are converted via `Convert.ChangeType` with `CultureInfo.InvariantCulture` using the target method's `ParameterInfo`. Argument count is validated — mismatch throws `FormatException`.
 
@@ -74,11 +79,12 @@ Arguments are converted via `Convert.ChangeType` with `CultureInfo.InvariantCult
 #a | #b               OR (short-circuit)
 #cond ? #then         conditional (no else → false on fail)
 #cond ? #then : #else conditional with else
+#if $name             variable truthiness (built-in)
 #a ; #b               groups (result = last)
 [n] #a                delay n seconds (n > 0, accumulates)
 ```
 
-Strings with spaces or special chars (`# " | ; ? :`) must be quoted. `""` inside quotes = literal `"`.
+Strings with spaces or special chars (`# $ " | ; ? :`) must be quoted. `""` inside quotes = literal `"`.
 
 ## Key conventions
 
@@ -98,3 +104,6 @@ Strings with spaces or special chars (`# " | ; ? :`) must be quoted. `""` inside
 - Wrong number of arguments throws `FormatException` with expected vs actual count.
 - Unknown function name throws `KeyNotFoundException`.
 - Duplicate `[Sharpex("name")]` across methods throws `InvalidOperationException` at startup.
+- `[Sharpex("if")]` throws `InvalidOperationException` — `if` is a reserved built-in name.
+- Using `#if` without setting `VarProvider` throws `InvalidOperationException`.
+- `#if` without a `$` prefix argument throws `FormatException`.

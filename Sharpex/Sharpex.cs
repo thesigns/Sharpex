@@ -15,9 +15,18 @@ namespace Sharpex
         public string Name { get; } = name;
     }
 
+    public interface ISharpexVar
+    {
+        object? GetValue(string name);
+        void SetValue(string name, object? value);
+    }
+
     public static class Sharpex
     {
         private static readonly Dictionary<string, (Func<object?[], bool> Fn, ParameterInfo[] Parameters)> Functions = new();
+        private static readonly HashSet<string> ReservedNames = ["if"];
+
+        public static ISharpexVar? VarProvider { get; set; }
 
         static Sharpex()
         {
@@ -37,6 +46,9 @@ namespace Sharpex
 
                 if (attr == null)
                     continue;
+
+                if (ReservedNames.Contains(attr.Name))
+                    throw new InvalidOperationException($"'{attr.Name}' is a reserved built-in function");
 
                 if (method.ReturnType != typeof(bool))
                     throw new InvalidOperationException($"{method.Name} must return bool");
@@ -356,8 +368,29 @@ namespace Sharpex
             return result;
         }
 
+        internal static bool IsTruthy(object? value) => value switch
+        {
+            null => false,
+            bool b => b,
+            string s => s.Length > 0,
+            IConvertible c => c.ToDouble(CultureInfo.InvariantCulture) != 0,
+            _ => true
+        };
+
         private static bool ExecuteCall(string name, List<string> args)
         {
+            if (name == "if")
+            {
+                if (VarProvider == null)
+                    throw new InvalidOperationException("VarProvider is not set");
+                if (args.Count != 1)
+                    throw new FormatException(
+                        $"Function 'if' expects 1 argument, got {args.Count}");
+                if (!args[0].StartsWith('$'))
+                    throw new FormatException("Function 'if' expects a $variable argument");
+                return IsTruthy(VarProvider.GetValue(args[0][1..]));
+            }
+
             if (!Functions.TryGetValue(name, out var entry))
                 throw new KeyNotFoundException($"Sharpex function '{name}' not found");
 

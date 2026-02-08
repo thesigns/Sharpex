@@ -10,8 +10,20 @@ internal static class Program
     private static bool hasPotion;
     private static string playerName = "Adventurer";
 
+    private class PlaygroundVarProvider : ISharpexVar
+    {
+        private readonly Dictionary<string, object?> _vars = new();
+        public object? GetValue(string name) => _vars.TryGetValue(name, out var val) ? val : null;
+        public void SetValue(string name, object? value) => _vars[name] = value;
+    }
+
     private static async Task Main()
     {
+        var vars = new PlaygroundVarProvider();
+        vars.SetValue("isNight", true);
+        vars.SetValue("gold", gold);
+        Sharpex.VarProvider = vars;
+
         // 1. Basic calls & quoted strings
         Run("#banner \"=== The Dragon's Rest Tavern ===\"");
         Run("#say \"You push open the heavy oak door and step inside.\"");
@@ -53,7 +65,12 @@ internal static class Program
         await RunAsync(
             "#say \"The ground shakes...\" [1.5] #say \"A DRAGON bursts through the wall!\" [1] #has-item sword ? #say \"You slash the dragon! It flees!\" : #say \"You dive behind a table!\"");
 
-        // 8. Finale
+        // 8. Variables (#if $)
+        Section("Variables (#if $)");
+        Run("#if $isNight ? #say \"The moon casts long shadows...\" : #say \"The sun is shining.\"");
+        Run("#if $gold #say \"You still have some gold.\"");
+
+        // 9. Finale
         Section("Finale");
         Run("#say \"The dust settles. The tavern is in ruins, but you survived.\"");
         Run("#status");

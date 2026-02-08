@@ -59,7 +59,18 @@ Parameters are automatically converted from strings using `Convert.ChangeType`. 
 ~pay 10              NOT pay — calls pay, negates the result
 ```
 
-`#` starts a function call. `~` starts a negated call (`NOT`). Arguments follow the function name, separated by spaces. Newlines are treated as spaces, so expressions can span multiple lines. Strings containing spaces or special characters (`# " | ; ? :`) must be quoted. Use `""` inside quotes for a literal `"`.
+`#` starts a function call. `~` starts a negated call (`NOT`). Arguments follow the function name, separated by spaces. Newlines are treated as spaces, so expressions can span multiple lines. Strings containing spaces or special characters (`# $ " | ; ? :`) must be quoted. Use `""` inside quotes for a literal `"`.
+
+### Variables (`#if $name`)
+
+```
+#if $isOpen                         true if isOpen is truthy
+#if $isNight ? #log "Dark" : #log "Light"
+```
+
+Variables use the `$` prefix. The built-in `#if` reads a variable via `ISharpexVar.GetValue` and returns its **truthiness**: `null` → false, `bool` → direct, numbers → `0` is false, strings → empty is false, everything else → true. Negation works: `~if $isOpen`.
+
+Variables require a provider — see `Sharpex.VarProvider` in the API section.
 
 ### AND (implicit)
 
@@ -150,6 +161,23 @@ Evaluates an expression asynchronously, awaiting the provided delay function bet
 bool result = await Sharpex.EvalAsync(
     "#log \"now\" [2] #log \"later\"",
     seconds => Task.Delay(TimeSpan.FromSeconds(seconds)));
+```
+
+### `Sharpex.VarProvider`
+
+Set this to an `ISharpexVar` implementation to enable variable access via `#if $name`. If not set, using `#if` throws `InvalidOperationException`.
+
+```csharp
+public interface ISharpexVar
+{
+    object? GetValue(string name);
+    void SetValue(string name, object? value);
+}
+```
+
+```csharp
+Sharpex.VarProvider = new MyVarProvider();
+bool result = Sharpex.Eval("#if $isOpen ? #log \"open\" : #log \"closed\"");
 ```
 
 ## License
