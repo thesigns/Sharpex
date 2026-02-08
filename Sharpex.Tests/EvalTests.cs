@@ -913,4 +913,61 @@ public class EvalTests : IDisposable
         Assert.True(result);
         Assert.Equal(95, money);
     }
+
+    // --- Validate ---
+
+    [Fact]
+    public void Validate_valid_expression()
+    {
+        Sharpex.Validate("#pay 10");
+    }
+
+    [Fact]
+    public void Validate_valid_complex()
+    {
+        Sharpex.Validate("#pay 5 ; #is $x > 10 ? #pay 1 : #pay 2");
+    }
+
+    [Fact]
+    public void Validate_unknown_function_throws()
+    {
+        Assert.Throws<KeyNotFoundException>(() => Sharpex.Validate("#nonexistent"));
+    }
+
+    [Fact]
+    public void Validate_wrong_arg_count_throws()
+    {
+        Assert.Throws<FormatException>(() => Sharpex.Validate("#pay"));
+    }
+
+    [Fact]
+    public void Validate_is_wrong_count_throws()
+    {
+        Assert.Throws<FormatException>(() => Sharpex.Validate("#is $x >"));
+    }
+
+    [Fact]
+    public void Validate_is_bad_operator_throws()
+    {
+        Assert.Throws<FormatException>(() => Sharpex.Validate("#is $x <> 10"));
+    }
+
+    [Fact]
+    public void Validate_set_bad_operator_throws()
+    {
+        Assert.Throws<FormatException>(() => Sharpex.Validate("#set $x %= 2"));
+    }
+
+    [Fact]
+    public void Validate_syntax_error_throws()
+    {
+        Assert.Throws<FormatException>(() => Sharpex.Validate("#pay 5 ? #pay 3 ? #pay 1"));
+    }
+
+    [Fact]
+    public void Validate_does_not_require_provider()
+    {
+        Sharpex.VarProvider = null;
+        Sharpex.Validate("#is $x");
+    }
 }

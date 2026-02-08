@@ -304,6 +304,63 @@ namespace Sharpex
         public static bool IsDelayed(string source) =>
             Parse(Tokenize(source)).Any(sg => sg.Delay > 0);
 
+        private static readonly HashSet<string> IsOperators = ["==", "!=", ">", "<", ">=", "<="];
+        private static readonly HashSet<string> SetOperators = ["=", "+=", "-=", "*=", "/="];
+
+        public static void Validate(string source)
+        {
+            var superGroups = Parse(Tokenize(source));
+            foreach (var sg in superGroups)
+                foreach (var group in sg.Groups)
+                {
+                    ValidateCalls(group.Condition);
+                    if (group.Then != null) ValidateCalls(group.Then);
+                    if (group.Else != null) ValidateCalls(group.Else);
+                }
+        }
+
+        private static void ValidateCalls(
+            List<List<(string Name, List<string> Args, bool Negated)>> orExpr)
+        {
+            foreach (var andClause in orExpr)
+                foreach (var (name, args, _) in andClause)
+                    ValidateCall(name, args);
+        }
+
+        private static void ValidateCall(string name, List<string> args)
+        {
+            if (name == "is")
+            {
+                if (args.Count != 1 && args.Count != 3)
+                    throw new FormatException(
+                        $"Function 'is' expects 1 or 3 arguments, got {args.Count}");
+                if (!args[0].StartsWith('$'))
+                    throw new FormatException("Function 'is' expects a $variable argument");
+                if (args.Count == 3 && !IsOperators.Contains(args[1]))
+                    throw new FormatException($"Unknown operator '{args[1]}'");
+                return;
+            }
+
+            if (name == "set")
+            {
+                if (args.Count != 3)
+                    throw new FormatException(
+                        $"Function 'set' expects 3 arguments, got {args.Count}");
+                if (!args[0].StartsWith('$'))
+                    throw new FormatException("Function 'set' expects a $variable as first argument");
+                if (!SetOperators.Contains(args[1]))
+                    throw new FormatException($"Unknown operator '{args[1]}'");
+                return;
+            }
+
+            if (!Functions.TryGetValue(name, out var entry))
+                throw new KeyNotFoundException($"Sharpex function '{name}' not found");
+
+            if (args.Count != entry.Parameters.Length)
+                throw new FormatException(
+                    $"Function '{name}' expects {entry.Parameters.Length} argument(s), got {args.Count}");
+        }
+
         public static bool Eval(string source)
         {
             var superGroups = Parse(Tokenize(source));

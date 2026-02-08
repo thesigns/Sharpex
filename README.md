@@ -167,6 +167,15 @@ Evaluates an expression synchronously. Throws `InvalidOperationException` if the
 bool result = Sharpex.Eval("#pay 10 #log \"paid\"");
 ```
 
+### `Sharpex.Validate(string source)`
+
+Checks an expression for syntax errors, unknown functions, and argument mismatches — without executing anything. Useful for validating spreadsheet data at import time. Throws the same exceptions as `Eval` (`FormatException`, `KeyNotFoundException`), but has no side effects and does not require `VarProvider`.
+
+```csharp
+foreach (var row in spreadsheet)
+    Sharpex.Validate(row.OnOpen); // throws if invalid
+```
+
 ### `Sharpex.IsDelayed(string source)`
 
 Returns `true` if the expression contains time delays (`[n]`). Use this to decide between `Eval` and `EvalAsync`.

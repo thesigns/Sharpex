@@ -31,7 +31,7 @@ All tests must pass before any change is considered complete.
 Everything lives in a single static class `Sharpex` in `Sharpex/Sharpex.cs`. The pipeline is:
 
 ```
-source string → Tokenize → Parse → Eval/EvalAsync
+source string → Tokenize → Parse → Validate / Eval / EvalAsync
 ```
 
 ### Function registration
@@ -58,6 +58,7 @@ Operator precedence (highest first): `#`/`~` call → AND (space) → OR (`|`) �
 
 ### Evaluator (`Eval`, `EvalAsync`, `EvalGroups`, `EvalOrExpr`, `ExecuteCall`)
 
+- `Validate(string)` — checks syntax, function names, argument counts, and built-in format rules without executing. Does not require `VarProvider`. Throws `FormatException`/`KeyNotFoundException` on errors.
 - `IsDelayed(string)` — returns true if expression contains `[n]` delays. Use to choose between `Eval` and `EvalAsync`.
 - `Eval(string)` — synchronous. Throws `InvalidOperationException` if delays > 0.
 - `EvalAsync(string, Func<float, Task>)` — async. Caller provides the delay implementation.
