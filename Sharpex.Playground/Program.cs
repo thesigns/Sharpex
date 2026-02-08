@@ -72,8 +72,15 @@ internal static class Program
         Run("#is $gold > 20 ? #say \"Plenty of gold!\" : #say \"Running low on gold...\"");
         Run("#set $gold += 100");
         Run("#is $gold > 100 ? #say \"Now THAT's a lot of gold!\"");
+        Run("#is $gold != 0 ? #say \"You're not broke!\"");
 
-        // 9. Finale
+        // 9. $var in function args
+        Section("$var in function args");
+        vars.SetValue("tip", 3);
+        Run("#say \"Leaving a tip...\"");
+        Run("#pay $tip");
+
+        // 10. Finale
         Section("Finale");
         Run("#say \"The dust settles. The tavern is in ruins, but you survived.\"");
         Run("#status");

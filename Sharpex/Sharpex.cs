@@ -414,10 +414,13 @@ namespace Sharpex
             if (left == null)
                 throw new FormatException("Cannot compare null variable");
 
-            if (op == "==")
-                return Equals(left, right) ||
-                       (IsNumeric(left) && IsNumeric(right) &&
-                        ToDouble(left) == ToDouble(right));
+            if (op == "==" || op == "!=")
+            {
+                var eq = Equals(left, right) ||
+                         (IsNumeric(left) && IsNumeric(right) &&
+                          ToDouble(left) == ToDouble(right));
+                return op == "==" ? eq : !eq;
+            }
 
             if (!IsNumeric(left) || !IsNumeric(right))
                 throw new FormatException($"Operator '{op}' requires numeric operands");
@@ -516,7 +519,19 @@ namespace Sharpex
 
             var converted = new object?[entry.Parameters.Length];
             for (var i = 0; i < converted.Length; i++)
-                converted[i] = Convert.ChangeType(args[i], entry.Parameters[i].ParameterType, CultureInfo.InvariantCulture);
+            {
+                if (args[i].StartsWith('$'))
+                {
+                    if (VarProvider == null)
+                        throw new InvalidOperationException("VarProvider is not set");
+                    var val = VarProvider.GetValue(args[i][1..]);
+                    converted[i] = Convert.ChangeType(val, entry.Parameters[i].ParameterType, CultureInfo.InvariantCulture);
+                }
+                else
+                {
+                    converted[i] = Convert.ChangeType(args[i], entry.Parameters[i].ParameterType, CultureInfo.InvariantCulture);
+                }
+            }
 
             return entry.Fn(converted);
         }

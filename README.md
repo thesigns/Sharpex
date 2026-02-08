@@ -61,11 +61,17 @@ Parameters are automatically converted from strings using `Convert.ChangeType`. 
 
 `#` starts a function call. `~` starts a negated call (`NOT`). Arguments follow the function name, separated by spaces. Newlines are treated as spaces, so expressions can span multiple lines. Strings containing spaces or special characters (`# $ " | ; ? :`) must be quoted. Use `""` inside quotes for a literal `"`.
 
+Arguments starting with `$` are resolved as variables via `VarProvider` before being passed to the function:
+
+```
+#pay $price              resolves $price variable, passes value to pay
+```
+
 ### Variables (`#is`, `#set`)
 
 ```
 #is $isOpen                         true if isOpen is truthy
-#is $money > 10                     comparison (>, <, >=, <=, ==)
+#is $money > 10                     comparison (>, <, >=, <=, ==, !=)
 #is $name == "John"                 string equality
 #is $money >= $price                compare two variables
 #set $name = "Jakub"                assign (auto-detects type for new vars)
@@ -74,7 +80,7 @@ Parameters are automatically converted from strings using `Convert.ChangeType`. 
 #is $isNight ? #log "Dark" : #log "Light"
 ```
 
-**`#is`** reads a variable via `ISharpexVar.GetValue`. With 1 argument, returns **truthiness**: `null` → false, `bool` → direct, numbers → `0` is false, strings → empty is false, everything else → true. With 3 arguments (`$var op value`), performs a comparison. Comparison operators `>`, `<`, `>=`, `<=` require numeric operands. `==` works on all types. Type mismatches and null comparisons throw `FormatException`. Negation works: `~is $money > 100`.
+**`#is`** reads a variable via `ISharpexVar.GetValue`. With 1 argument, returns **truthiness**: `null` → false, `bool` → direct, numbers → `0` is false, strings → empty is false, everything else → true. With 3 arguments (`$var op value`), performs a comparison. Comparison operators `>`, `<`, `>=`, `<=` require numeric operands. `==` and `!=` work on all types. Type mismatches and null comparisons throw `FormatException`. Negation works: `~is $money > 100`.
 
 **`#set`** assigns a variable via `ISharpexVar.SetValue`. Always 3 arguments: `$var op value`. Simple `=` converts the value to the variable's existing type, or auto-detects type for new variables (bool → int → double → string). Compound operators (`+=`, `-=`, `*=`, `/=`) require numeric variables. Always returns `true`.
 

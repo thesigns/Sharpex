@@ -67,22 +67,23 @@ Operator precedence (highest first): `#`/`~` call → AND (space) → OR (`|`) �
 - Conditionals (`? :`): condition true → then branch; false → else branch (or false if no else).
 - Delays (`[n]`): accumulated sequentially. `[0]` is disallowed (`FormatException`).
 - NOT (`~`): negates the result of a single call.
-- Built-in `#is`: 1 arg (`$var`) → truthiness via `IsTruthy`. 3 args (`$var op value`) → comparison. Operators `>`, `<`, `>=`, `<=` require numeric operands. `==` works on all types. Right side can be literal or `$var`. Null left side → `FormatException`.
+- Built-in `#is`: 1 arg (`$var`) → truthiness via `IsTruthy`. 3 args (`$var op value`) → comparison. Operators `>`, `<`, `>=`, `<=` require numeric operands. `==` and `!=` work on all types. Right side can be literal or `$var`. Null left side → `FormatException`.
 - Built-in `#set`: 3 args (`$var op value`). `=` assigns (converts to existing type or auto-detects via `ParseLiteral`). `+=`, `-=`, `*=`, `/=` compound on numeric. Always returns `true`.
 
-Arguments are converted via `Convert.ChangeType` with `CultureInfo.InvariantCulture` using the target method's `ParameterInfo`. Argument count is validated — mismatch throws `FormatException`.
+Arguments starting with `$` are resolved via `VarProvider.GetValue` before conversion. Other arguments are converted via `Convert.ChangeType` with `CultureInfo.InvariantCulture` using the target method's `ParameterInfo`. Argument count is validated — mismatch throws `FormatException`.
 
 ## DSL syntax reference
 
 ```
 #name args...         function call
+#name $var            $var resolved via VarProvider
 ~name args...         negated call (NOT)
 #a #b                 AND (short-circuit)
 #a | #b               OR (short-circuit)
 #cond ? #then         conditional (no else → false on fail)
 #cond ? #then : #else conditional with else
 #is $var              variable truthiness (built-in)
-#is $var > 10         comparison (>, <, >=, <=, ==)
+#is $var > 10         comparison (>, <, >=, <=, ==, !=)
 #is $var == $other    compare two variables
 #set $var = 10        assign variable (built-in)
 #set $var += 5        compound assign (+=, -=, *=, /=)

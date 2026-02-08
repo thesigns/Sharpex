@@ -623,7 +623,7 @@ public class EvalTests : IDisposable
     public void Is_unknown_operator_throws()
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["money"] = 42 } };
-        Assert.Throws<FormatException>(() => Sharpex.Eval("#is $money != 10"));
+        Assert.Throws<FormatException>(() => Sharpex.Eval("#is $money <> 10"));
     }
 
     [Fact]
@@ -631,6 +631,43 @@ public class EvalTests : IDisposable
     {
         Sharpex.VarProvider = new TestVarProvider { Vars = { ["temperature"] = 36.6 } };
         Assert.True(Sharpex.Eval("#is $temperature > 36"));
+    }
+
+    // --- #is != ---
+
+    [Fact]
+    public void Is_not_equal_int_true()
+    {
+        Sharpex.VarProvider = new TestVarProvider { Vars = { ["money"] = 42 } };
+        Assert.True(Sharpex.Eval("#is $money != 99"));
+    }
+
+    [Fact]
+    public void Is_not_equal_int_false()
+    {
+        Sharpex.VarProvider = new TestVarProvider { Vars = { ["money"] = 42 } };
+        Assert.False(Sharpex.Eval("#is $money != 42"));
+    }
+
+    [Fact]
+    public void Is_not_equal_string()
+    {
+        Sharpex.VarProvider = new TestVarProvider { Vars = { ["name"] = "John" } };
+        Assert.True(Sharpex.Eval("#is $name != \"Jane\""));
+    }
+
+    [Fact]
+    public void Is_not_equal_null_throws()
+    {
+        Sharpex.VarProvider = new TestVarProvider();
+        Assert.Throws<FormatException>(() => Sharpex.Eval("#is $unset != 10"));
+    }
+
+    [Fact]
+    public void Is_not_equal_var_to_var()
+    {
+        Sharpex.VarProvider = new TestVarProvider { Vars = { ["a"] = 5, ["b"] = 10 } };
+        Assert.True(Sharpex.Eval("#is $a != $b"));
     }
 
     // --- #set ---
@@ -830,5 +867,50 @@ public class EvalTests : IDisposable
         Assert.True(result);
         Assert.Equal(50, provider.Vars["discount"]);
         Assert.Equal(70, money);
+    }
+
+    // --- $var in function args ---
+
+    [Fact]
+    public void Var_in_function_arg_int()
+    {
+        money = 100;
+        Sharpex.VarProvider = new TestVarProvider { Vars = { ["price"] = 10 } };
+
+        var result = Sharpex.Eval("#pay $price");
+
+        Assert.True(result);
+        Assert.Equal(90, money);
+    }
+
+    [Fact]
+    public void Var_in_function_arg_int_side_effect()
+    {
+        money = 100;
+        var provider = new TestVarProvider { Vars = { ["price"] = 30 } };
+        Sharpex.VarProvider = provider;
+
+        Sharpex.Eval("#set $price = 20 ; #pay $price");
+
+        Assert.Equal(80, money);
+    }
+
+    [Fact]
+    public void Var_in_function_arg_without_provider_throws()
+    {
+        Sharpex.VarProvider = null;
+        Assert.Throws<InvalidOperationException>(() => Sharpex.Eval("#pay $price"));
+    }
+
+    [Fact]
+    public void Var_in_function_arg_resolves_before_convert()
+    {
+        money = 100;
+        Sharpex.VarProvider = new TestVarProvider { Vars = { ["amount"] = 5.0 } };
+
+        var result = Sharpex.Eval("#pay $amount");
+
+        Assert.True(result);
+        Assert.Equal(95, money);
     }
 }
