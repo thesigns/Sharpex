@@ -69,6 +69,7 @@ internal static class Program
         Section("Variables (#if $)");
         Run("#if $isNight ? #say \"The moon casts long shadows...\" : #say \"The sun is shining.\"");
         Run("#if $gold #say \"You still have some gold.\"");
+        Run("#if $gold > 20 ? #say \"Plenty of gold!\" : #say \"Running low on gold...\"");
 
         // 9. Finale
         Section("Finale");

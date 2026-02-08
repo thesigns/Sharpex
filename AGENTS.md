@@ -66,7 +66,7 @@ Operator precedence (highest first): `#`/`~` call → AND (space) → OR (`|`) �
 - Conditionals (`? :`): condition true → then branch; false → else branch (or false if no else).
 - Delays (`[n]`): accumulated sequentially. `[0]` is disallowed (`FormatException`).
 - NOT (`~`): negates the result of a single call.
-- Built-in `#if`: reads variable via `VarProvider.GetValue`, returns truthiness (`IsTruthy`). Requires exactly 1 `$variable` argument.
+- Built-in `#if`: 1 arg (`$var`) → truthiness via `IsTruthy`. 3 args (`$var op value`) → comparison. Operators `>`, `<`, `>=`, `<=` require numeric operands. `==` works on all types. Right side can be literal or `$var`. Null left side → `FormatException`.
 
 Arguments are converted via `Convert.ChangeType` with `CultureInfo.InvariantCulture` using the target method's `ParameterInfo`. Argument count is validated — mismatch throws `FormatException`.
 
@@ -79,7 +79,9 @@ Arguments are converted via `Convert.ChangeType` with `CultureInfo.InvariantCult
 #a | #b               OR (short-circuit)
 #cond ? #then         conditional (no else → false on fail)
 #cond ? #then : #else conditional with else
-#if $name             variable truthiness (built-in)
+#if $var              variable truthiness (built-in)
+#if $var > 10         comparison (>, <, >=, <=, ==)
+#if $var == $other    compare two variables
 #a ; #b               groups (result = last)
 [n] #a                delay n seconds (n > 0, accumulates)
 ```

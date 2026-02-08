@@ -61,14 +61,19 @@ Parameters are automatically converted from strings using `Convert.ChangeType`. 
 
 `#` starts a function call. `~` starts a negated call (`NOT`). Arguments follow the function name, separated by spaces. Newlines are treated as spaces, so expressions can span multiple lines. Strings containing spaces or special characters (`# $ " | ; ? :`) must be quoted. Use `""` inside quotes for a literal `"`.
 
-### Variables (`#if $name`)
+### Variables (`#if`)
 
 ```
 #if $isOpen                         true if isOpen is truthy
+#if $money > 10                     comparison (>, <, >=, <=, ==)
+#if $name == "John"                 string equality
+#if $money >= $price                compare two variables
 #if $isNight ? #log "Dark" : #log "Light"
 ```
 
-Variables use the `$` prefix. The built-in `#if` reads a variable via `ISharpexVar.GetValue` and returns its **truthiness**: `null` → false, `bool` → direct, numbers → `0` is false, strings → empty is false, everything else → true. Negation works: `~if $isOpen`.
+The built-in `#if` reads a variable via `ISharpexVar.GetValue`. With 1 argument, returns **truthiness**: `null` → false, `bool` → direct, numbers → `0` is false, strings → empty is false, everything else → true. With 3 arguments (`$var op value`), performs a comparison. The right side can be a literal or another `$variable`.
+
+Comparison operators `>`, `<`, `>=`, `<=` require numeric operands. `==` works on all types. Type mismatches and null comparisons throw `FormatException`. Negation works: `~if $money > 100`.
 
 Variables require a provider — see `Sharpex.VarProvider` in the API section.
 

@@ -377,18 +377,71 @@ namespace Sharpex
             _ => true
         };
 
+        private static object? ResolveValue(string token, object? typeHint)
+        {
+            if (token.StartsWith('$'))
+            {
+                if (VarProvider == null)
+                    throw new InvalidOperationException("VarProvider is not set");
+                return VarProvider.GetValue(token[1..]);
+            }
+
+            if (typeHint == null)
+                return token;
+            return Convert.ChangeType(token, typeHint.GetType(), CultureInfo.InvariantCulture);
+        }
+
+        private static bool IsNumeric(object? value) =>
+            value is byte or sbyte or short or ushort or int or uint or
+            long or ulong or float or double or decimal;
+
+        private static double ToDouble(object? value) =>
+            ((IConvertible)value!).ToDouble(CultureInfo.InvariantCulture);
+
+        internal static bool Compare(object? left, string op, object? right)
+        {
+            if (left == null)
+                throw new FormatException("Cannot compare null variable");
+
+            if (op == "==")
+                return Equals(left, right) ||
+                       (IsNumeric(left) && IsNumeric(right) &&
+                        ToDouble(left) == ToDouble(right));
+
+            if (!IsNumeric(left) || !IsNumeric(right))
+                throw new FormatException($"Operator '{op}' requires numeric operands");
+
+            var l = ToDouble(left);
+            var r = ToDouble(right);
+            return op switch
+            {
+                ">" => l > r,
+                "<" => l < r,
+                ">=" => l >= r,
+                "<=" => l <= r,
+                _ => throw new FormatException($"Unknown operator '{op}'")
+            };
+        }
+
         private static bool ExecuteCall(string name, List<string> args)
         {
             if (name == "if")
             {
                 if (VarProvider == null)
                     throw new InvalidOperationException("VarProvider is not set");
-                if (args.Count != 1)
+                if (args.Count != 1 && args.Count != 3)
                     throw new FormatException(
-                        $"Function 'if' expects 1 argument, got {args.Count}");
+                        $"Function 'if' expects 1 or 3 arguments, got {args.Count}");
                 if (!args[0].StartsWith('$'))
                     throw new FormatException("Function 'if' expects a $variable argument");
-                return IsTruthy(VarProvider.GetValue(args[0][1..]));
+
+                if (args.Count == 1)
+                    return IsTruthy(VarProvider.GetValue(args[0][1..]));
+
+                var left = VarProvider.GetValue(args[0][1..]);
+                var op = args[1];
+                var right = ResolveValue(args[2], left);
+                return Compare(left, op, right);
             }
 
             if (!Functions.TryGetValue(name, out var entry))
