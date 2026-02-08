@@ -180,8 +180,8 @@ namespace Sharpex
         {
             var groups = new List<ParsedGroup>();
 
-            // split tokens by ">"
-            var groupTokenLists = SplitTokens(tokens, ">");
+            // split tokens by ";"
+            var groupTokenLists = SplitTokens(tokens, ";");
 
             foreach (var groupTokens in groupTokenLists)
             {

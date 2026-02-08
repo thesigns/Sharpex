@@ -59,7 +59,7 @@ Parameters are automatically converted from strings using `Convert.ChangeType`. 
 ~pay 10              NOT pay — calls pay, negates the result
 ```
 
-`#` starts a function call. `~` starts a negated call (`NOT`). Arguments follow the function name, separated by spaces. Newlines are treated as spaces, so expressions can span multiple lines. Strings containing spaces or special characters (`# " | > ? :`) must be quoted. Use `""` inside quotes for a literal `"`.
+`#` starts a function call. `~` starts a negated call (`NOT`). Arguments follow the function name, separated by spaces. Newlines are treated as spaces, so expressions can span multiple lines. Strings containing spaces or special characters (`# " | ; ? :`) must be quoted. Use `""` inside quotes for a literal `"`.
 
 ### AND (implicit)
 
@@ -93,10 +93,10 @@ AND has higher precedence than OR:
 
 If the condition is true, the `?` branch executes. If false and a `:` branch exists, that executes instead. Without `:`, a false condition returns `false`. Each branch supports full AND/OR expressions. No nesting — max one `?` and one `:` per group.
 
-### Groups (`>`)
+### Groups (`;`)
 
 ```
-#pay 10 > #log "paid"
+#pay 10 ; #log "paid"
 ```
 
 Groups execute sequentially. The result is the result of the **last group**. All groups execute regardless of previous results.
@@ -117,7 +117,7 @@ Groups execute sequentially. The result is the result of the **last group**. All
 | AND | (space) | Short-circuit AND |
 | OR | `\|` | Short-circuit OR |
 | Conditional | `? :` | If-then-else |
-| Group | `>` | Sequential group |
+| Group | `;` | Sequential group |
 | Delay | `[n]` | Time-delayed super group |
 
 ### Full example
@@ -128,7 +128,7 @@ Expressions can span multiple lines for readability:
 #has-item key
     ? #open-door #log "Door opened"
     : #log "Need a key"
-> #pay 5 | #log "Not enough gold"
+; #pay 5 | #log "Not enough gold"
 [2] #log "2 seconds later..."
 ```
 

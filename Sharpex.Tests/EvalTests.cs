@@ -52,8 +52,8 @@ public class EvalTests
     {
         money = 20;
 
-        // group 1: pay 10 (true) > group 2: pay 5 (true)
-        var result = Sharpex.Eval("#pay 10 > #pay 5");
+        // group 1: pay 10 (true) ; group 2: pay 5 (true)
+        var result = Sharpex.Eval("#pay 10 ; #pay 5");
 
         Assert.True(result);
         Assert.Equal(5, money);
@@ -64,8 +64,8 @@ public class EvalTests
     {
         money = 5;
 
-        // group 1: pay 10 (false, not enough) > group 2: pay 3 (true)
-        var result = Sharpex.Eval("#pay 10 > #pay 3");
+        // group 1: pay 10 (false, not enough) ; group 2: pay 3 (true)
+        var result = Sharpex.Eval("#pay 10 ; #pay 3");
 
         Assert.True(result);
         Assert.Equal(2, money);
@@ -76,8 +76,8 @@ public class EvalTests
     {
         money = 5;
 
-        // group 1: pay 3 (true) > group 2: pay 10 (false)
-        var result = Sharpex.Eval("#pay 3 > #pay 10");
+        // group 1: pay 3 (true) ; group 2: pay 10 (false)
+        var result = Sharpex.Eval("#pay 3 ; #pay 10");
 
         Assert.False(result);
         Assert.Equal(2, money);
@@ -184,9 +184,9 @@ public class EvalTests
     {
         money = 20;
 
-        // group 1: pay 5 (true) > group 2: pay 100 ? pay 3 : pay 1
+        // group 1: pay 5 (true) ; group 2: pay 100 ? pay 3 : pay 1
         // group 2 condition fails → else: pay 1
-        var result = Sharpex.Eval("#pay 5 > #pay 100 ? #pay 3 : #pay 1");
+        var result = Sharpex.Eval("#pay 5 ; #pay 100 ? #pay 3 : #pay 1");
 
         Assert.True(result);
         Assert.Equal(14, money); // 20 - 5 - 1

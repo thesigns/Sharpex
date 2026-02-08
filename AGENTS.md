@@ -40,17 +40,17 @@ Static methods marked with `[Sharpex("name")]` are discovered via reflection at 
 
 ### Tokenizer (`Tokenize`)
 
-Splits input into tokens by whitespace. Supports quoted strings (`"..."`) with `""` escape for literal quotes. Returns `List<string>`. Does not interpret `#`, `~`, `>`, `|`, `?`, `:`, `[n]` — those are just tokens.
+Splits input into tokens by whitespace. Supports quoted strings (`"..."`) with `""` escape for literal quotes. Returns `List<string>`. Does not interpret `#`, `~`, `;`, `|`, `?`, `:`, `[n]` — those are just tokens.
 
 ### Parser (`Parse`, `ParseGroups`, `ParseOrExpr`)
 
 Three-level parsing:
 
 1. **`Parse`** — splits by `[n]` delay tokens into `List<ParsedSuperGroup>`. Each super group has a `float Delay` and `List<ParsedGroup>`.
-2. **`ParseGroups`** — splits by `>` into groups, then by `?` / `:` into conditionals. Returns `List<ParsedGroup>` where each has Condition, optional Then, optional Else.
+2. **`ParseGroups`** — splits by `;` into groups, then by `?` / `:` into conditionals. Returns `List<ParsedGroup>` where each has Condition, optional Then, optional Else.
 3. **`ParseOrExpr`** — splits by `|` into OR clauses, each containing AND-ed calls. Each call is `(string Name, List<string> Args, bool Negated)`.
 
-Operator precedence (highest first): `#`/`~` call → AND (space) → OR (`|`) → conditional (`? :`) → group (`>`) → delay (`[n]`).
+Operator precedence (highest first): `#`/`~` call → AND (space) → OR (`|`) → conditional (`? :`) → group (`;`) → delay (`[n]`).
 
 ### Evaluator (`Eval`, `EvalAsync`, `EvalGroups`, `EvalOrExpr`, `ExecuteCall`)
 
@@ -58,7 +58,7 @@ Operator precedence (highest first): `#`/`~` call → AND (space) → OR (`|`) �
 - `EvalAsync(string, Func<float, Task>)` — async. Caller provides the delay implementation.
 - AND: short-circuit on false.
 - OR: short-circuit on true.
-- Groups (`>`): all execute, result = last.
+- Groups (`;`): all execute, result = last.
 - Conditionals (`? :`): condition true → then branch; false → else branch (or false if no else).
 - Delays (`[n]`): accumulated sequentially. `[0]` is disallowed (`FormatException`).
 - NOT (`~`): negates the result of a single call.
@@ -74,11 +74,11 @@ Arguments are converted via `Convert.ChangeType` with `CultureInfo.InvariantCult
 #a | #b               OR (short-circuit)
 #cond ? #then         conditional (no else → false on fail)
 #cond ? #then : #else conditional with else
-#a > #b               groups (result = last)
+#a ; #b               groups (result = last)
 [n] #a                delay n seconds (n > 0, accumulates)
 ```
 
-Strings with spaces or special chars (`# " | > ? :`) must be quoted. `""` inside quotes = literal `"`.
+Strings with spaces or special chars (`# " | ; ? :`) must be quoted. `""` inside quotes = literal `"`.
 
 ## Key conventions
 
@@ -92,7 +92,7 @@ Strings with spaces or special chars (`# " | > ? :`) must be quoted. `""` inside
 
 - The static constructor scans all loaded assemblies. Some assemblies (e.g. test runners) may throw `TypeLoadException` or `ReflectionTypeLoadException` — these are caught and skipped silently.
 - `[0]` delay is a `FormatException`, not silently ignored.
-- `>` inside a conditional (between `?` and `:`) is a parse error — conditionals must stay within a single group.
+- `;` inside a conditional (between `?` and `:`) is a parse error — conditionals must stay within a single group.
 - `:` without a preceding `?` is a parse error.
 - Multiple `?` in one group is a parse error.
 - Wrong number of arguments throws `FormatException` with expected vs actual count.

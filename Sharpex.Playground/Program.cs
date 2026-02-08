@@ -43,9 +43,9 @@ internal static class Program
         Run("#has-item sword ? #say \"You brandish your sword!\" : #say \"No weapon... you gulp nervously.\"");
         Run("#has-item shield ? #say \"Your shield gleams with power!\"");
 
-        // 6. Groups (>)
-        Section("Groups (>)");
-        Run("#say \"Barkeep: 'One for the road?'\" > #pay 2 > #heal 10");
+        // 6. Groups (;)
+        Section("Groups (;)");
+        Run("#say \"Barkeep: 'One for the road?'\" ; #pay 2 ; #heal 10");
         Run("#status");
 
         // 7. Timed encounter (EvalAsync + delays)
