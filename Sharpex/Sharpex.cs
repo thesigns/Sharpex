@@ -10,9 +10,10 @@ using System.Threading.Tasks;
 namespace Sharpex
 {
     [AttributeUsage(AttributeTargets.Method)]
-    public sealed class SharpexAttribute(string name) : Attribute
+    public sealed class SharpexAttribute : Attribute
     {
-        public string Name { get; } = name;
+        public string Name { get; }
+        public SharpexAttribute(string name) { Name = name; }
     }
 
     public interface ISharpexVar
@@ -24,7 +25,7 @@ namespace Sharpex
     public static class Sharpex
     {
         private static readonly Dictionary<string, (Func<object?[], bool> Fn, ParameterInfo[] Parameters)> Functions = new();
-        private static readonly HashSet<string> ReservedNames = ["is", "set"];
+        private static readonly HashSet<string> ReservedNames = new HashSet<string> { "is", "set" };
 
         public static ISharpexVar? VarProvider { get; set; }
 
@@ -35,7 +36,7 @@ namespace Sharpex
                          .SelectMany(a =>
                          {
                              try { return a.GetTypes(); }
-                             catch (ReflectionTypeLoadException) { return []; }
+                             catch (ReflectionTypeLoadException) { return Array.Empty<Type>(); }
                          })
                          .SelectMany(t => t.GetMethods(
                              BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)))
@@ -140,12 +141,34 @@ namespace Sharpex
             return tokens;
         }
 
-        internal record ParsedGroup(
-            List<List<(string Name, List<string> Args, bool Negated)>> Condition,
-            List<List<(string Name, List<string> Args, bool Negated)>>? Then,
-            List<List<(string Name, List<string> Args, bool Negated)>>? Else);
+        internal sealed class ParsedGroup
+        {
+            public List<List<(string Name, List<string> Args, bool Negated)>> Condition { get; }
+            public List<List<(string Name, List<string> Args, bool Negated)>>? Then { get; }
+            public List<List<(string Name, List<string> Args, bool Negated)>>? Else { get; }
 
-        internal record ParsedSuperGroup(float Delay, List<ParsedGroup> Groups);
+            public ParsedGroup(
+                List<List<(string Name, List<string> Args, bool Negated)>> condition,
+                List<List<(string Name, List<string> Args, bool Negated)>>? then,
+                List<List<(string Name, List<string> Args, bool Negated)>>? @else)
+            {
+                Condition = condition;
+                Then = then;
+                Else = @else;
+            }
+        }
+
+        internal sealed class ParsedSuperGroup
+        {
+            public float Delay { get; }
+            public List<ParsedGroup> Groups { get; }
+
+            public ParsedSuperGroup(float delay, List<ParsedGroup> groups)
+            {
+                Delay = delay;
+                Groups = groups;
+            }
+        }
 
         private static bool TryParseDelay(string token, out float delay)
         {
@@ -171,7 +194,7 @@ namespace Sharpex
                     if (currentTokens.Count > 0)
                     {
                         superGroups.Add(new ParsedSuperGroup(currentDelay, ParseGroups(currentTokens)));
-                        currentTokens = [];
+                        currentTokens = new List<string>();
                     }
 
                     currentDelay = delay;
@@ -236,7 +259,7 @@ namespace Sharpex
                 if (token == separator)
                 {
                     result.Add(current);
-                    current = [];
+                    current = new List<string>();
                 }
                 else
                 {
@@ -273,7 +296,7 @@ namespace Sharpex
                 FlushCall();
                 if (currentAnd.Count > 0)
                     orClauses.Add(currentAnd);
-                currentAnd = [];
+                currentAnd = new List<(string Name, List<string> Args, bool Negated)>();
             }
 
             foreach (var token in tokens)
@@ -287,7 +310,7 @@ namespace Sharpex
                     FlushCall();
                     currentNegated = token[0] == '~';
                     currentName = token[1..];
-                    currentArgs = [];
+                    currentArgs = new List<string>();
                 }
                 else
                 {
@@ -304,8 +327,8 @@ namespace Sharpex
         public static bool IsDelayed(string source) =>
             Parse(Tokenize(source)).Any(sg => sg.Delay > 0);
 
-        private static readonly HashSet<string> IsOperators = ["==", "!=", ">", "<", ">=", "<="];
-        private static readonly HashSet<string> SetOperators = ["=", "+=", "-=", "*=", "/="];
+        private static readonly HashSet<string> IsOperators = new HashSet<string> { "==", "!=", ">", "<", ">=", "<=" };
+        private static readonly HashSet<string> SetOperators = new HashSet<string> { "=", "+=", "-=", "*=", "/=" };
 
         public static void Validate(string source)
         {
