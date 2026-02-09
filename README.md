@@ -2,7 +2,7 @@
 
 A lightweight behavior scripting DSL for C#. Define boolean functions in your code, then compose them into expressions with AND, OR, NOT, conditionals, sequencing, and time delays — all from a single string.
 
-Works with .NET.
+Works with .NET and Unity.
 
 ## Use case
 

@@ -6,6 +6,16 @@ Behavior scripting DSL for C#. A single-file library (`Sharpex/Sharpex.cs`) that
 
 The DSL is designed for one-liner behavior scripts stored in game data spreadsheets (CSV, Excel, Google Sheets). Expressions live in columns like `OnOpen`, `OnUse`, `OnTalk` and are evaluated at runtime via `Eval`/`EvalAsync`. The syntax is intentionally compact to fit in a single cell.
 
+## Unity compatibility
+
+The code MUST compile in Unity (C# 9 / .NET Standard 2.1). Do not use:
+
+- **Primary constructors** (C# 12) — use traditional constructors
+- **Collection expressions** `[...]` (C# 12) — use `new List<T>()`, `new HashSet<T> { ... }`, `Array.Empty<T>()`
+- **Records** — use sealed classes (records require `IsExternalInit` which is unreliable in Unity/IL2CPP)
+
+The file includes `#nullable enable` at the top because Unity projects don't enable nullable globally.
+
 ## Project structure
 
 ```
